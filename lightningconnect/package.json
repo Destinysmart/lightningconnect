@@ -1,0 +1,48 @@
+{
+  "name": "lightningconnect",
+  "version": "0.1.0",
+  "description": "Zero-friction Bitcoin wallet connection widget for any web app. Blink Lightning Address + Nostr Wallet Connect, no API keys.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --minify --treeshake",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch"
+  },
+  "keywords": [
+    "bitcoin",
+    "lightning",
+    "wallet",
+    "nwc",
+    "nostr-wallet-connect",
+    "blink",
+    "lnurl",
+    "react"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "@noble/hashes": "^2.0.0",
+    "nostr-tools": "^2.0.0",
+    "qrcode": "^1.5.0",
+    "zustand": "^4.0.0 || ^5.0.0"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.0",
+    "@types/react": "^18.0.0",
+    "react": "^18.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
