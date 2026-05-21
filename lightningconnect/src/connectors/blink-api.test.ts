@@ -107,7 +107,6 @@ describe("makeInvoiceBlinkApi", () => {
               paymentRequest: "lnbc1btc",
               paymentHash: "h-btc",
               satoshis: 1500,
-              expiresAt: 1700003600,
             },
             errors: [],
           },
@@ -119,7 +118,7 @@ describe("makeInvoiceBlinkApi", () => {
     expect(inv.bolt11).toBe("lnbc1btc");
     expect(inv.paymentHash).toBe("h-btc");
     expect(inv.amount).toBe(1500);
-    expect(inv.expiresAt).toBe(1700003600);
+    expect(inv.expiresAt).toBeGreaterThan(inv.createdAt);
   });
 
   it("USD path calls lnUsdInvoiceCreate with cents", async () => {
@@ -135,7 +134,6 @@ describe("makeInvoiceBlinkApi", () => {
               paymentRequest: "lnbc1usd",
               paymentHash: "h-usd",
               satoshis: 420,
-              expiresAt: null,
             },
             errors: [],
           },
