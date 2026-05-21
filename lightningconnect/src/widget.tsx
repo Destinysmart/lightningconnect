@@ -211,8 +211,8 @@ export function LightningConnect({
                 (e.currentTarget.style.borderColor = t.border)
               }
             >
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
-                ⚡ Blink Lightning Address
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                <Zap size={16} aria-hidden /> Blink Lightning Address
               </div>
               <div style={{ marginBottom: 6 }}>
                 <span style={tag}>Recommended</span>
