@@ -55,8 +55,12 @@ export function LightningConnect({
     // Generate a request-for-connection QR (NIP-47 client side request)
     // For demo purposes we render an instructional payload — the user pastes back
     const payload = "nostr+walletconnect://?demo=scan-from-your-wallet";
-    QRCode.toDataURL(payload, { width: 256, margin: 1, color: { dark: t.foreground, light: "#00000000" } }).then(setQrDataUrl);
-  }, [view, t.foreground]);
+    QRCode.toDataURL(payload, {
+      width: 256,
+      margin: 1,
+      color: { dark: "#000000", light: "#ffffff" },
+    }).then(setQrDataUrl);
+  }, [view]);
 
   if (!modalOpen) return null;
 
