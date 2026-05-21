@@ -1,4 +1,4 @@
-export type ConnectionType = "blink-address" | "nwc";
+export type ConnectionType = "blink-address" | "nwc" | "blink-api";
 
 export interface BlinkAddressConnection {
   type: "blink-address";
@@ -14,7 +14,18 @@ export interface NwcConnection {
   secret: string;
 }
 
-export type Connection = BlinkAddressConnection | NwcConnection;
+export interface BlinkApiConnection {
+  type: "blink-api";
+  apiKey: string;
+  walletId: string;
+  walletName: string;
+  walletCurrency: "BTC" | "USD";
+}
+
+export type Connection =
+  | BlinkAddressConnection
+  | NwcConnection
+  | BlinkApiConnection;
 
 export interface Invoice {
   bolt11: string;

@@ -14,4 +14,5 @@ export type {
   Theme,
   BlinkAddressConnection,
   NwcConnection,
+  BlinkApiConnection,
 } from "./types";

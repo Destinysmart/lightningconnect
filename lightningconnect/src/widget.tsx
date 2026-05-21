@@ -1,9 +1,10 @@
 import { useState, useEffect, type CSSProperties } from "react";
-import { Zap, Link2, ClipboardPaste } from "lucide-react";
+import { Zap, Link2, ClipboardPaste, KeyRound, Lock } from "lucide-react";
 
 import type { Connection, Theme } from "./types";
 import { validateBlinkAddress } from "./connectors/blink-address";
 import { parseNwcUri } from "./connectors/nwc";
+import { validateBlinkApiKey } from "./connectors/blink-api";
 import {
   useWidgetStore,
   persistConnection,
@@ -25,7 +26,7 @@ const defaultTheme: Required<Theme> = {
   muted: "#A1A1AA",
 };
 
-type View = "home" | "blink" | "nwc" | "nwc-paste";
+type View = "home" | "blink" | "nwc" | "nwc-paste" | "blink-api";
 
 export function LightningConnect({
   theme,
@@ -39,6 +40,8 @@ export function LightningConnect({
   const [error, setError] = useState<string | null>(null);
   const [blinkInput, setBlinkInput] = useState("");
   const [nwcInput, setNwcInput] = useState("");
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [walletNameInput, setWalletNameInput] = useState("");
 
 
   useEffect(() => {
@@ -47,6 +50,8 @@ export function LightningConnect({
       setError(null);
       setBlinkInput("");
       setNwcInput("");
+      setApiKeyInput("");
+      setWalletNameInput("");
     }
   }, [modalOpen]);
 
@@ -84,6 +89,30 @@ export function LightningConnect({
       setBusy(false);
     }
   };
+
+  const submitBlinkApi = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const conn = await validateBlinkApiKey(apiKeyInput, walletNameInput);
+      await handleConnect(conn);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const pasteApiKey = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setApiKeyInput(text.trim());
+    } catch {
+      setError("Couldn't read from clipboard. Paste manually.");
+    }
+  };
+
+
 
   const overlay: CSSProperties = {
     position: "fixed",
@@ -248,6 +277,29 @@ export function LightningConnect({
             </button>
 
             <button
+              style={optionBtn}
+              onClick={() => setView("blink-api")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.borderColor = t.primary)
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.borderColor = t.border)
+              }
+            >
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                <KeyRound size={16} aria-hidden /> Blink API Key
+              </div>
+              <div style={{ marginBottom: 6 }}>
+                <span style={tag}>Advanced</span>
+                <span style={tag}>Full Control</span>
+              </div>
+              <div style={{ fontSize: 12, color: t.muted }}>
+                For power users
+              </div>
+            </button>
+
+
+            <button
               style={linkBtn}
               onClick={() => {
                 onSkip?.();
@@ -347,6 +399,92 @@ export function LightningConnect({
               onClick={submitNwc}
             >
               {busy ? "Pairing…" : "Connect"}
+            </button>
+            {back}
+          </>
+        )}
+
+        {view === "blink-api" && (
+          <>
+            <h2 style={title}>Blink API Key</h2>
+            <p style={subtitle}>
+              Advanced — full transaction history and balance access
+            </p>
+            <input
+              style={input}
+              placeholder="Wallet name (optional)"
+              value={walletNameInput}
+              onChange={(e) => setWalletNameInput(e.target.value)}
+            />
+            <div style={{ position: "relative", marginBottom: 12 }}>
+              <input
+                style={{ ...input, paddingRight: 78, marginBottom: 0 }}
+                placeholder="blink_..."
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={pasteApiKey}
+                style={{
+                  position: "absolute",
+                  right: 6,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "transparent",
+                  color: t.primary,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 8,
+                  padding: "6px 10px",
+                  fontSize: 11,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <ClipboardPaste size={12} aria-hidden /> Paste
+              </button>
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: t.muted,
+                lineHeight: 1.55,
+                marginBottom: 10,
+              }}
+            >
+              1. Go to dashboard.blink.sv → 2. Navigate to API Keys → 3.
+              Create key with READ + RECEIVE scopes
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: t.muted,
+                marginBottom: 12,
+                opacity: 0.85,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <Lock size={11} aria-hidden /> Your API key is encrypted and
+              stored securely on your device.
+            </div>
+            {error && (
+              <div
+                style={{ color: "#ef4444", fontSize: 12, marginBottom: 10 }}
+              >
+                {error}
+              </div>
+            )}
+            <button
+              style={primaryBtn}
+              disabled={busy || !apiKeyInput}
+              onClick={submitBlinkApi}
+            >
+              {busy ? "Validating…" : "Connect"}
             </button>
             {back}
           </>

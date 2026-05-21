@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Zap, Link2, Lock } from "lucide-react";
+import { Zap, Link2, KeyRound } from "lucide-react";
 import {
   LightningConnect,
   useWalletConnect,
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Drop-in React widget for Bitcoin wallet connection. Blink Lightning Address + Nostr Wallet Connect. No API keys.",
+          "Drop-in React widget and hook for Bitcoin wallet connection. Supports Blink Lightning Address, NWC, and Blink API Key. One component, every user covered.",
       },
     ],
   }),
@@ -148,9 +148,9 @@ function Demo() {
             maxWidth: 620,
           }}
         >
-          A drop-in React widget + hook for any Bitcoin web app. Blink
-          Lightning Address or any NWC wallet. No API keys, no backend, no
-          dashboard.
+          A drop-in React widget + hook for any Bitcoin web app. Connect via
+          Blink Lightning Address, Nostr Wallet Connect, or Blink API Key. One
+          component, every user covered.
         </p>
 
         <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
@@ -353,17 +353,17 @@ function Demo() {
             {
               Icon: Zap,
               title: "Blink Lightning Address",
-              body: "User types their Blink username. We validate via LNURL-pay and you're done. No API keys, no setup.",
+              body: "Just your Blink username. No API key, no dashboard, no setup. Instant.",
             },
             {
               Icon: Link2,
               title: "Nostr Wallet Connect",
-              body: "Scan a QR or paste a connection string. Talk to any NWC wallet — Alby, Zeus, Coinos, Mutiny — over a Nostr relay.",
+              body: "Paste a connection string from Alby, Zeus, Coinos, or any NWC wallet. Decentralized and flexible.",
             },
             {
-              Icon: Lock,
-              title: "Encrypted local storage",
-              body: "Connection data is encrypted with AES-GCM, keyed to the device. Export/import for cross-device transfer.",
+              Icon: KeyRound,
+              title: "Blink API Key",
+              body: "Full control for power users. Unlocks transaction history, balance, and advanced features.",
             },
           ].map((f) => (
             <div

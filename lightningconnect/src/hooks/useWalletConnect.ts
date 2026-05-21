@@ -17,6 +17,10 @@ import {
   lookupInvoiceBlink,
 } from "../connectors/blink-address";
 import { makeInvoiceNwc, lookupInvoiceNwc } from "../connectors/nwc";
+import {
+  makeInvoiceBlinkApi,
+  lookupInvoiceBlinkApi,
+} from "../connectors/blink-api";
 
 interface WidgetState {
   connection: Connection | null;
@@ -73,6 +77,9 @@ export function useWalletConnect() {
     if (connection.type === "blink-address") {
       return makeInvoiceBlink(connection, amount, currency, memo);
     }
+    if (connection.type === "blink-api") {
+      return makeInvoiceBlinkApi(connection, amount, currency, memo);
+    }
     return makeInvoiceNwc(connection, amount, currency, memo);
   };
 
@@ -84,19 +91,34 @@ export function useWalletConnect() {
     if (connection.type === "blink-address") {
       return lookupInvoiceBlink(paymentHash, invoice?.verify);
     }
+    if (connection.type === "blink-api") {
+      return lookupInvoiceBlinkApi(connection, paymentHash);
+    }
     return lookupInvoiceNwc(connection, paymentHash);
   };
 
-  const walletInfo: WalletInfo | null = connection
-    ? {
-        name: connection.type === "blink-address" ? "Blink" : "NWC Wallet",
-        address:
-          connection.type === "blink-address"
-            ? connection.address
-            : `${connection.walletPubkey.slice(0, 8)}…`,
-        currency: "BTC",
-      }
-    : null;
+  const walletInfo: WalletInfo | null = (() => {
+    if (!connection) return null;
+    if (connection.type === "blink-address") {
+      return {
+        name: "Blink",
+        address: connection.address,
+        currency: "BTC" as const,
+      };
+    }
+    if (connection.type === "blink-api") {
+      return {
+        name: connection.walletName,
+        address: `blink_…${connection.apiKey.slice(-4)}`,
+        currency: connection.walletCurrency,
+      };
+    }
+    return {
+      name: "NWC Wallet",
+      address: `${connection.walletPubkey.slice(0, 8)}…`,
+      currency: "BTC" as const,
+    };
+  })();
 
   return {
     connect,
