@@ -134,7 +134,6 @@ describe("makeInvoiceBlinkApi", () => {
               paymentRequest: "lnbc1usd",
               paymentHash: "h-usd",
               satoshis: 420,
-              expiresAt: null,
             },
             errors: [],
           },
