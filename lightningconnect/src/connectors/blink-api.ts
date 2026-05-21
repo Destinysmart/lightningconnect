@@ -81,19 +81,8 @@ interface InvoiceCreateResponse {
     paymentRequest: string;
     paymentHash: string;
     satoshis: number;
-    expiresAt?: number | string | null;
   } | null;
   errors: GraphQLError[];
-}
-
-function parseExpiresAt(value: number | string | null | undefined): number {
-  if (value == null) return Math.floor(Date.now() / 1000) + 3600;
-  if (typeof value === "number") return value;
-  const asNum = Number(value);
-  if (!Number.isNaN(asNum) && asNum > 0) return asNum;
-  const asDate = Date.parse(value);
-  if (!Number.isNaN(asDate)) return Math.floor(asDate / 1000);
-  return Math.floor(Date.now() / 1000) + 3600;
 }
 
 export async function makeInvoiceBlinkApi(
@@ -106,13 +95,13 @@ export async function makeInvoiceBlinkApi(
   const query = isUsd
     ? `mutation($i: LnUsdInvoiceCreateInput!) {
          lnUsdInvoiceCreate(input: $i) {
-           invoice { paymentRequest paymentHash satoshis expiresAt }
+           invoice { paymentRequest paymentHash satoshis }
            errors { message }
          }
        }`
     : `mutation($i: LnInvoiceCreateInput!) {
          lnInvoiceCreate(input: $i) {
-           invoice { paymentRequest paymentHash satoshis expiresAt }
+           invoice { paymentRequest paymentHash satoshis }
            errors { message }
          }
        }`;
