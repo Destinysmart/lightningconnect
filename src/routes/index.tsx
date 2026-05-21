@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   LightningConnect,
@@ -182,8 +182,8 @@ function Demo() {
               Disconnect {walletInfo?.address}
             </button>
           )}
-          <a
-            href="https://github.com"
+          <Link
+            to="/readme"
             style={{
               background: "transparent",
               color: COLORS.fg,
@@ -198,7 +198,7 @@ function Demo() {
             }}
           >
             View README
-          </a>
+          </Link>
         </div>
 
         <section
