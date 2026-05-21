@@ -1,9 +1,10 @@
 import { useState, useEffect, type CSSProperties } from "react";
-import { Zap, Link2, ClipboardPaste } from "lucide-react";
+import { Zap, Link2, ClipboardPaste, KeyRound } from "lucide-react";
 
 import type { Connection, Theme } from "./types";
 import { validateBlinkAddress } from "./connectors/blink-address";
 import { parseNwcUri } from "./connectors/nwc";
+import { validateBlinkApiKey } from "./connectors/blink-api";
 import {
   useWidgetStore,
   persistConnection,
@@ -25,7 +26,7 @@ const defaultTheme: Required<Theme> = {
   muted: "#A1A1AA",
 };
 
-type View = "home" | "blink" | "nwc" | "nwc-paste";
+type View = "home" | "blink" | "nwc" | "nwc-paste" | "blink-api";
 
 export function LightningConnect({
   theme,
@@ -39,6 +40,8 @@ export function LightningConnect({
   const [error, setError] = useState<string | null>(null);
   const [blinkInput, setBlinkInput] = useState("");
   const [nwcInput, setNwcInput] = useState("");
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [walletNameInput, setWalletNameInput] = useState("");
 
 
   useEffect(() => {
@@ -47,6 +50,8 @@ export function LightningConnect({
       setError(null);
       setBlinkInput("");
       setNwcInput("");
+      setApiKeyInput("");
+      setWalletNameInput("");
     }
   }, [modalOpen]);
 
@@ -76,6 +81,37 @@ export function LightningConnect({
     setError(null);
     setBusy(true);
     try {
+      const conn = parseNwcUri(nwcInput.trim());
+      await handleConnect(conn);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitBlinkApi = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const conn = await validateBlinkApiKey(apiKeyInput, walletNameInput);
+      await handleConnect(conn);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const pasteApiKey = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setApiKeyInput(text.trim());
+    } catch {
+      setError("Couldn't read from clipboard. Paste manually.");
+    }
+  };
+
       const conn = parseNwcUri(nwcInput.trim());
       await handleConnect(conn);
     } catch (e) {
