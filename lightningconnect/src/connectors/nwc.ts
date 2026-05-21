@@ -178,18 +178,28 @@ export async function makeInvoiceNwc(
     sats = Math.round(amount * btcPerUsd * 1e8);
   }
   const result = await sendNwcRequest<{
-    invoice: string;
-    payment_hash: string;
-    amount: number;
-    created_at: number;
-    expires_at: number;
+    invoice?: string;
+    payment_request?: string;
+    bolt11?: string;
+    payment_hash?: string;
+    hash?: string;
+    amount?: number;
+    created_at?: number;
+    expires_at?: number;
   }>(conn, "make_invoice", {
     amount: sats * 1000,
     description: memo,
   });
+  const bolt11 = result.invoice ?? result.payment_request ?? result.bolt11;
+  const paymentHash = result.payment_hash ?? result.hash;
+  if (!bolt11 || !paymentHash) {
+    throw new Error(
+      `NWC make_invoice returned unexpected shape: ${JSON.stringify(result)}`,
+    );
+  }
   return {
-    bolt11: result.invoice,
-    paymentHash: result.payment_hash,
+    bolt11,
+    paymentHash,
     amount: sats,
     memo,
     createdAt: result.created_at ?? Math.floor(Date.now() / 1000),
