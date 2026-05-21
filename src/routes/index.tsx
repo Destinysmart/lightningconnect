@@ -68,7 +68,7 @@ function Demo() {
     if (!invoice) return;
     setBusy(true);
     try {
-      const s = await lookupInvoice(invoice.paymentHash);
+      const s = await lookupInvoice(invoice.paymentHash, invoice);
       setStatus(s);
     } catch (e) {
       setErr((e as Error).message);
