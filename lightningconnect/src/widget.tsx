@@ -277,6 +277,29 @@ export function LightningConnect({
             </button>
 
             <button
+              style={optionBtn}
+              onClick={() => setView("blink-api")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.borderColor = t.primary)
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.borderColor = t.border)
+              }
+            >
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                <KeyRound size={16} aria-hidden /> Blink API Key
+              </div>
+              <div style={{ marginBottom: 6 }}>
+                <span style={tag}>Advanced</span>
+                <span style={tag}>Full Control</span>
+              </div>
+              <div style={{ fontSize: 12, color: t.muted }}>
+                For power users
+              </div>
+            </button>
+
+
+            <button
               style={linkBtn}
               onClick={() => {
                 onSkip?.();
