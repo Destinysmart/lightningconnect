@@ -59,8 +59,8 @@ async function sendNwcRequestOnce<T = unknown>(
   );
 
   const relays = [conn.relay];
+  const startedAt = Date.now();
 
-  // Ensure relay WS connection is established before publishing.
   try {
     await pool.ensureRelay(conn.relay, { connectionTimeout: 10000 });
   } catch (e) {
@@ -70,18 +70,13 @@ async function sendNwcRequestOnce<T = unknown>(
 
   let sub: { close: () => void } | undefined;
   let timeout: ReturnType<typeof setTimeout> | undefined;
+  let settled = false;
   const cleanup = () => {
+    if (settled) return;
+    settled = true;
     if (timeout) clearTimeout(timeout);
-    try {
-      sub?.close();
-    } catch {
-      /* noop */
-    }
-    try {
-      pool.close(relays);
-    } catch {
-      /* noop */
-    }
+    try { sub?.close(); } catch { /* noop */ }
+    try { pool.close(relays); } catch { /* noop */ }
   };
 
   const responsePromise = new Promise<T>((resolve, reject) => {
@@ -98,10 +93,15 @@ async function sendNwcRequestOnce<T = unknown>(
       onevent: async (ev) => {
         try {
           const dec = await nip04.decrypt(conn.secret, conn.walletPubkey, ev.content);
+          console.log("[NWC] raw response event", { id: ev.id, kind: ev.kind, decrypted: dec });
           const parsed = JSON.parse(dec) as { result?: T; error?: { message: string } };
-          cleanup();
-          if (parsed.error) reject(new Error(parsed.error.message));
-          else resolve(parsed.result as T);
+          if (parsed.error) {
+            cleanup();
+            reject(new Error(parsed.error.message));
+          } else {
+            cleanup();
+            resolve(parsed.result as T);
+          }
         } catch (e) {
           cleanup();
           reject(e);
@@ -110,14 +110,26 @@ async function sendNwcRequestOnce<T = unknown>(
     });
 
     timeout = setTimeout(() => {
+      console.log("[NWC] request timed out", { method, elapsedMs: Date.now() - startedAt });
       cleanup();
       reject(new Error("NWC request timed out"));
     }, timeoutMs);
   });
 
-  // Subscription is set up; now publish. Surface publish failures explicitly.
+  // Give the relay time to register the REQ subscription before we publish.
+  await new Promise((r) => setTimeout(r, 500));
+
+  console.log("[NWC] publishing request", { method, eventId: event.id, relay: conn.relay });
   try {
     const acks = await Promise.allSettled(pool.publish(relays, event));
+    console.log(
+      "[NWC] publish acks",
+      acks.map((a) =>
+        a.status === "fulfilled"
+          ? { ok: true, value: a.value }
+          : { ok: false, reason: String(a.reason) },
+      ),
+    );
     if (acks.every((a) => a.status === "rejected")) {
       cleanup();
       throw new Error(
@@ -166,18 +178,28 @@ export async function makeInvoiceNwc(
     sats = Math.round(amount * btcPerUsd * 1e8);
   }
   const result = await sendNwcRequest<{
-    invoice: string;
-    payment_hash: string;
-    amount: number;
-    created_at: number;
-    expires_at: number;
+    invoice?: string;
+    payment_request?: string;
+    bolt11?: string;
+    payment_hash?: string;
+    hash?: string;
+    amount?: number;
+    created_at?: number;
+    expires_at?: number;
   }>(conn, "make_invoice", {
     amount: sats * 1000,
     description: memo,
   });
+  const bolt11 = result.invoice ?? result.payment_request ?? result.bolt11;
+  const paymentHash = result.payment_hash ?? result.hash;
+  if (!bolt11 || !paymentHash) {
+    throw new Error(
+      `NWC make_invoice returned unexpected shape: ${JSON.stringify(result)}`,
+    );
+  }
   return {
-    bolt11: result.invoice,
-    paymentHash: result.payment_hash,
+    bolt11,
+    paymentHash,
     amount: sats,
     memo,
     createdAt: result.created_at ?? Math.floor(Date.now() / 1000),
