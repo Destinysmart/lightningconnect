@@ -35,10 +35,11 @@ export function parseNwcUri(uri: string): NwcConnection {
   };
 }
 
-async function sendNwcRequest<T = unknown>(
+async function sendNwcRequestOnce<T = unknown>(
   conn: NwcConnection,
   method: string,
   params: Record<string, unknown>,
+  timeoutMs: number,
 ): Promise<T> {
   const pool = new SimplePool();
   const secretBytes = hexToBytes(conn.secret);
@@ -59,12 +60,15 @@ async function sendNwcRequest<T = unknown>(
 
   const relays = [conn.relay];
 
-  const responsePromise = new Promise<T>((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      sub.close();
-      reject(new Error("NWC request timed out"));
-    }, 15000);
+  // Ensure relay WS connection is established before publishing.
+  try {
+    await pool.ensureRelay(conn.relay, { connectionTimeout: 10000 });
+  } catch (e) {
+    pool.close(relays);
+    throw new Error(`Failed to connect to relay ${conn.relay}: ${(e as Error).message}`);
+  }
 
+  const responsePromise = new Promise<T>((resolve, reject) => {
     const filters = [
       {
         kinds: [NWC_RESPONSE_KIND],
@@ -73,30 +77,50 @@ async function sendNwcRequest<T = unknown>(
         "#e": [event.id],
       },
     ] as unknown as Parameters<typeof pool.subscribeMany>[1];
-    const sub = pool.subscribeMany(
-      relays,
-      filters,
-      {
-        onevent: async (ev) => {
-          try {
-            const dec = await nip04.decrypt(conn.secret, conn.walletPubkey, ev.content);
-            const parsed = JSON.parse(dec) as { result?: T; error?: { message: string } };
-            clearTimeout(timeout);
-            sub.close();
-            if (parsed.error) reject(new Error(parsed.error.message));
-            else resolve(parsed.result as T);
-          } catch (e) {
-            clearTimeout(timeout);
-            sub.close();
-            reject(e);
-          }
-        },
+
+    const sub = pool.subscribeMany(relays, filters, {
+      onevent: async (ev) => {
+        try {
+          const dec = await nip04.decrypt(conn.secret, conn.walletPubkey, ev.content);
+          const parsed = JSON.parse(dec) as { result?: T; error?: { message: string } };
+          clearTimeout(timeout);
+          sub.close();
+          pool.close(relays);
+          if (parsed.error) reject(new Error(parsed.error.message));
+          else resolve(parsed.result as T);
+        } catch (e) {
+          clearTimeout(timeout);
+          sub.close();
+          pool.close(relays);
+          reject(e);
+        }
       },
-    );
+    });
+
+    const timeout = setTimeout(() => {
+      sub.close();
+      pool.close(relays);
+      reject(new Error("NWC request timed out"));
+    }, timeoutMs);
   });
 
   await Promise.all(pool.publish(relays, event));
   return responsePromise;
+}
+
+async function sendNwcRequest<T = unknown>(
+  conn: NwcConnection,
+  method: string,
+  params: Record<string, unknown>,
+): Promise<T> {
+  try {
+    return await sendNwcRequestOnce<T>(conn, method, params, 10000);
+  } catch (e) {
+    const msg = (e as Error).message.toLowerCase();
+    if (!msg.includes("timed out") && !msg.includes("failed to connect")) throw e;
+    // Retry once with a longer 30s window.
+    return await sendNwcRequestOnce<T>(conn, method, params, 30000);
+  }
 }
 
 export async function makeInvoiceNwc(
