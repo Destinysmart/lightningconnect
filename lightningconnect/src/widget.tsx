@@ -112,14 +112,7 @@ export function LightningConnect({
     }
   };
 
-      const conn = parseNwcUri(nwcInput.trim());
-      await handleConnect(conn);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
+
 
   const overlay: CSSProperties = {
     position: "fixed",
