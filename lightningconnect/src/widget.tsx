@@ -1,4 +1,5 @@
 import { useState, useEffect, type CSSProperties } from "react";
+import { Zap, Link2, ClipboardPaste } from "lucide-react";
 
 import type { Connection, Theme } from "./types";
 import { validateBlinkAddress } from "./connectors/blink-address";
@@ -210,8 +211,8 @@ export function LightningConnect({
                 (e.currentTarget.style.borderColor = t.border)
               }
             >
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
-                ⚡ Blink Lightning Address
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                <Zap size={16} aria-hidden /> Blink Lightning Address
               </div>
               <div style={{ marginBottom: 6 }}>
                 <span style={tag}>Recommended</span>
@@ -233,8 +234,8 @@ export function LightningConnect({
                 (e.currentTarget.style.borderColor = t.border)
               }
             >
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
-                🔗 Nostr Wallet Connect
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                <Link2 size={16} aria-hidden /> Nostr Wallet Connect
               </div>
               <div style={{ marginBottom: 6 }}>
                 <span style={tag}>Any Wallet</span>
@@ -303,8 +304,8 @@ export function LightningConnect({
                 (e.currentTarget.style.borderColor = t.border)
               }
             >
-              <div style={{ fontSize: 15, fontWeight: 600 }}>
-                📋 Paste connection string
+              <div style={{ fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                <ClipboardPaste size={16} aria-hidden /> Paste connection string
               </div>
               <div style={{ fontSize: 12, color: t.muted, marginTop: 4 }}>
                 nostr+walletconnect://…
