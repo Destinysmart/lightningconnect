@@ -53,6 +53,7 @@ function Demo() {
   const handleMake = async () => {
     setErr(null);
     setStatus(null);
+    setInvoice(null);
     setBusy(true);
     try {
       const inv = await makeInvoice(Number(amount), currency, memo);
@@ -64,8 +65,10 @@ function Demo() {
     }
   };
 
+
   const handleLookup = async () => {
     if (!invoice) return;
+    setErr(null);
     setBusy(true);
     try {
       const s = await lookupInvoice(invoice.paymentHash, invoice);
@@ -76,6 +79,7 @@ function Demo() {
       setBusy(false);
     }
   };
+
 
   return (
     <div
