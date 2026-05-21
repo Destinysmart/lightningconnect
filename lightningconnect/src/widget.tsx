@@ -464,9 +464,13 @@ export function LightningConnect({
                 color: t.muted,
                 marginBottom: 12,
                 opacity: 0.85,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
-              🔒 Your API key is encrypted and stored securely on your device.
+              <Lock size={11} aria-hidden /> Your API key is encrypted and
+              stored securely on your device.
             </div>
             {error && (
               <div
