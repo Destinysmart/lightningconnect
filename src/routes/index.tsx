@@ -123,7 +123,7 @@ function Demo() {
             marginBottom: 28,
           }}
         >
-          <span style={{ color: COLORS.primary }}>⚡</span> v0.1.0 — npm
+          <Zap size={12} aria-hidden style={{ color: COLORS.primary }} /> v0.1.0 — npm
           install lightningconnect
         </div>
 
