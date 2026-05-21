@@ -129,7 +129,7 @@ export async function makeInvoiceBlinkApi(
     amount: payload.invoice.satoshis,
     memo,
     createdAt: now,
-    expiresAt: parseExpiresAt(payload.invoice.expiresAt),
+    expiresAt: now + 3600,
   };
 }
 
