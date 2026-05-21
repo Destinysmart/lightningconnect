@@ -351,17 +351,17 @@ function Demo() {
         <section style={{ marginTop: 56, display: "grid", gap: 16 }}>
           {[
             {
-              icon: "⚡",
+              Icon: Zap,
               title: "Blink Lightning Address",
               body: "User types their Blink username. We validate via LNURL-pay and you're done. No API keys, no setup.",
             },
             {
-              icon: "🔗",
+              Icon: Link2,
               title: "Nostr Wallet Connect",
               body: "Scan a QR or paste a connection string. Talk to any NWC wallet — Alby, Zeus, Coinos, Mutiny — over a Nostr relay.",
             },
             {
-              icon: "🔒",
+              Icon: Lock,
               title: "Encrypted local storage",
               body: "Connection data is encrypted with AES-GCM, keyed to the device. Export/import for cross-device transfer.",
             },
@@ -376,10 +376,10 @@ function Demo() {
               }}
             >
               <div
-                style={{ fontSize: 22, marginBottom: 8 }}
+                style={{ marginBottom: 8, color: COLORS.primary }}
                 aria-hidden="true"
               >
-                {f.icon}
+                <f.Icon size={22} />
               </div>
               <div style={{ fontWeight: 600, fontSize: 15 }}>{f.title}</div>
               <div
