@@ -68,6 +68,22 @@ async function sendNwcRequestOnce<T = unknown>(
     throw new Error(`Failed to connect to relay ${conn.relay}: ${(e as Error).message}`);
   }
 
+  let sub: { close: () => void } | undefined;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const cleanup = () => {
+    if (timeout) clearTimeout(timeout);
+    try {
+      sub?.close();
+    } catch {
+      /* noop */
+    }
+    try {
+      pool.close(relays);
+    } catch {
+      /* noop */
+    }
+  };
+
   const responsePromise = new Promise<T>((resolve, reject) => {
     const filters = [
       {
@@ -78,33 +94,43 @@ async function sendNwcRequestOnce<T = unknown>(
       },
     ] as unknown as Parameters<typeof pool.subscribeMany>[1];
 
-    const sub = pool.subscribeMany(relays, filters, {
+    sub = pool.subscribeMany(relays, filters, {
       onevent: async (ev) => {
         try {
           const dec = await nip04.decrypt(conn.secret, conn.walletPubkey, ev.content);
           const parsed = JSON.parse(dec) as { result?: T; error?: { message: string } };
-          clearTimeout(timeout);
-          sub.close();
-          pool.close(relays);
+          cleanup();
           if (parsed.error) reject(new Error(parsed.error.message));
           else resolve(parsed.result as T);
         } catch (e) {
-          clearTimeout(timeout);
-          sub.close();
-          pool.close(relays);
+          cleanup();
           reject(e);
         }
       },
     });
 
-    const timeout = setTimeout(() => {
-      sub.close();
-      pool.close(relays);
+    timeout = setTimeout(() => {
+      cleanup();
       reject(new Error("NWC request timed out"));
     }, timeoutMs);
   });
 
-  await Promise.all(pool.publish(relays, event));
+  // Subscription is set up; now publish. Surface publish failures explicitly.
+  try {
+    const acks = await Promise.allSettled(pool.publish(relays, event));
+    if (acks.every((a) => a.status === "rejected")) {
+      cleanup();
+      throw new Error(
+        `Failed to publish NWC request to relay: ${
+          (acks[0] as PromiseRejectedResult).reason
+        }`,
+      );
+    }
+  } catch (e) {
+    cleanup();
+    throw e;
+  }
+
   return responsePromise;
 }
 
@@ -114,14 +140,18 @@ async function sendNwcRequest<T = unknown>(
   params: Record<string, unknown>,
 ): Promise<T> {
   try {
-    return await sendNwcRequestOnce<T>(conn, method, params, 10000);
+    return await sendNwcRequestOnce<T>(conn, method, params, 15000);
   } catch (e) {
     const msg = (e as Error).message.toLowerCase();
-    if (!msg.includes("timed out") && !msg.includes("failed to connect")) throw e;
-    // Retry once with a longer 30s window.
+    const retryable =
+      msg.includes("timed out") ||
+      msg.includes("failed to connect") ||
+      msg.includes("failed to publish");
+    if (!retryable) throw e;
     return await sendNwcRequestOnce<T>(conn, method, params, 30000);
   }
 }
+
 
 export async function makeInvoiceNwc(
   conn: NwcConnection,
@@ -161,17 +191,28 @@ export async function lookupInvoiceNwc(
 ): Promise<InvoiceStatus> {
   try {
     const result = await sendNwcRequest<{
-      settled_at?: number;
-      preimage?: string;
+      settled_at?: number | null;
+      preimage?: string | null;
       state?: string;
+      status?: string;
+      settled?: boolean;
+      paid?: boolean;
     }>(conn, "lookup_invoice", { payment_hash: paymentHash });
+
+    const state = (result.state ?? result.status ?? "").toLowerCase();
+    const paidStates = new Set(["settled", "paid", "complete", "completed"]);
+    const expiredStates = new Set(["expired", "canceled", "cancelled"]);
+
     if (
-      result.settled_at ||
-      (result.preimage && result.preimage.length > 0) ||
-      result.state?.toLowerCase() === "settled"
-    )
+      result.settled === true ||
+      result.paid === true ||
+      (typeof result.settled_at === "number" && result.settled_at > 0) ||
+      (typeof result.preimage === "string" && result.preimage.length > 0) ||
+      paidStates.has(state)
+    ) {
       return "PAID";
-    if (result.state?.toLowerCase() === "expired") return "EXPIRED";
+    }
+    if (expiredStates.has(state)) return "EXPIRED";
     return "PENDING";
   } catch (e) {
     const msg = (e as Error).message.toLowerCase();
@@ -179,3 +220,4 @@ export async function lookupInvoiceNwc(
     return "PENDING";
   }
 }
+
