@@ -304,8 +304,8 @@ export function LightningConnect({
                 (e.currentTarget.style.borderColor = t.border)
               }
             >
-              <div style={{ fontSize: 15, fontWeight: 600 }}>
-                📋 Paste connection string
+              <div style={{ fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+                <ClipboardPaste size={16} aria-hidden /> Paste connection string
               </div>
               <div style={{ fontSize: 12, color: t.muted, marginTop: 4 }}>
                 nostr+walletconnect://…
