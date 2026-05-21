@@ -42,10 +42,10 @@ function Demo() {
   const [amount, setAmount] = useState("1000");
   const [memo, setMemo] = useState("Coffee");
   const [currency, setCurrency] = useState<"BTC" | "USD">("BTC");
-  const [invoice, setInvoice] = useState<{
-    bolt11: string;
-    paymentHash: string;
-  } | null>(null);
+  const [invoice, setInvoice] = useState<
+    | (import("../../lightningconnect/src/types").Invoice & { verify?: string })
+    | null
+  >(null);
   const [status, setStatus] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -56,7 +56,7 @@ function Demo() {
     setBusy(true);
     try {
       const inv = await makeInvoice(Number(amount), currency, memo);
-      setInvoice({ bolt11: inv.bolt11, paymentHash: inv.paymentHash });
+      setInvoice(inv);
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -68,7 +68,7 @@ function Demo() {
     if (!invoice) return;
     setBusy(true);
     try {
-      const s = await lookupInvoice(invoice.paymentHash);
+      const s = await lookupInvoice(invoice.paymentHash, invoice);
       setStatus(s);
     } catch (e) {
       setErr((e as Error).message);
