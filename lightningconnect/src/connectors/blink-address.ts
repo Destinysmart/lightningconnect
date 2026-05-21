@@ -97,7 +97,7 @@ export async function lookupInvoiceBlink(
   if (!verify) return "PENDING";
   const res = await fetch(verify);
   if (!res.ok) return "PENDING";
-  const data = (await res.json()) as { settled?: boolean; status?: string };
-  if (data.settled || data.status === "OK") return "PAID";
+  const data = (await res.json()) as { settled?: boolean; preimage?: string | null };
+  if (data.settled === true || (data.preimage && data.preimage.length > 0)) return "PAID";
   return "PENDING";
 }

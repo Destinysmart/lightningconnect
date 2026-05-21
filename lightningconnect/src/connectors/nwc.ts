@@ -160,12 +160,18 @@ export async function lookupInvoiceNwc(
   paymentHash: string,
 ): Promise<InvoiceStatus> {
   try {
-    const result = await sendNwcRequest<{ settled_at?: number; preimage?: string }>(
-      conn,
-      "lookup_invoice",
-      { payment_hash: paymentHash },
-    );
-    if (result.settled_at || result.preimage) return "PAID";
+    const result = await sendNwcRequest<{
+      settled_at?: number;
+      preimage?: string;
+      state?: string;
+    }>(conn, "lookup_invoice", { payment_hash: paymentHash });
+    if (
+      result.settled_at ||
+      (result.preimage && result.preimage.length > 0) ||
+      result.state?.toLowerCase() === "settled"
+    )
+      return "PAID";
+    if (result.state?.toLowerCase() === "expired") return "EXPIRED";
     return "PENDING";
   } catch (e) {
     const msg = (e as Error).message.toLowerCase();
