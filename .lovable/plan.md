@@ -1,61 +1,57 @@
-## Internal check: what is broken
+## Goal
 
-1. The app shell is currently rendering in preview, but there are historical internal server errors from the NWC connector.
-   - Server logs show repeated failures from `lightningconnect/src/connectors/nwc.ts` caused by a stale `@noble/hashes/utils` import.
-   - The current source has been changed to a local `hexToBytes`, so this specific import crash appears resolved in the file, but the logs confirm it was the SSR blank-screen cause.
+Fix the NWC `make_invoice` timeout against `wss://relay.coinos.io`. The relay and connection string are confirmed working — the bug is inside `lightningconnect/src/connectors/nwc.ts`.
 
-2. NWC invoice creation is still fragile.
-   - `sendNwcRequestOnce()` subscribes and publishes, but NWC relays/wallets can return publish failures or delayed responses.
-   - Current code retries only on timeout/connect failure and closes the pool on each attempt, which can still race with slow wallet responses.
-   - It also does not clearly validate relay publish acknowledgements before waiting for the response.
+## Changes (single file: `lightningconnect/src/connectors/nwc.ts`)
 
-3. NWC lookup coverage is incomplete.
-   - The current code handles `settled_at`, `preimage`, and `state: "settled"`.
-   - It should also normalize common wallet variants like uppercase states/statuses and explicit `paid`, `settled`, or `expired` fields when present.
+### 1. Guarantee subscribe-before-publish with a small settle delay
+In `sendNwcRequestOnce()`:
+- Keep `pool.ensureRelay()` first.
+- Create the `subscribeMany()` subscription.
+- `await new Promise(r => setTimeout(r, 500))` so the relay registers the REQ before we publish the event.
+- Only then call `pool.publish(relays, event)`.
 
-4. Blink lookup is now mostly correct, but the README/demo contract is misleading.
-   - `lookupInvoice(paymentHash)` alone cannot verify a Blink LNURL invoice because the verify URL is not derivable from the payment hash for every provider.
-   - The demo passes the full invoice object, which works, but README still shows only `lookupInvoice(invoice.paymentHash)` and would return `PENDING` for Blink forever.
+### 2. Log raw relay traffic for debugging
+- Log `[NWC] publishing request` with method, event id, relay.
+- In `onevent`, log `[NWC] raw response event` with `ev.id`, `ev.kind`, and the decrypted JSON string before parsing.
+- Log publish ack results (`[NWC] publish acks`) including any rejection reason.
+- Log timeout firing with elapsed ms.
 
-5. The NWC QR flow is not functional.
-   - The QR code contains `nostr+walletconnect://?demo=scan-from-your-wallet`, which is an instructional placeholder, not a valid pairing flow.
-   - Users scanning it will not connect a wallet. The paste flow is the only real NWC pairing path right now.
+### 3. Do not close the pool until response is fully parsed
+- Move the `cleanup()` call in `onevent` to AFTER `JSON.parse` succeeds and we have resolved/rejected with the final value (current code already does this, but verify ordering and ensure `pool.close` is the very last step, after `sub.close`).
+- On publish: if all acks reject, cleanup and throw. If at least one ack resolves, keep pool open and let the response promise drive cleanup.
 
-6. Demo UX hides important state.
-   - Errors are not cleared before lookup, so old errors can linger beside fresh results.
-   - There is no displayed payment hash, verify URL, or connection diagnostics, making it hard to know whether lookup is checking the intended invoice.
+### 4. Accept Coinos response shape variants in `makeInvoiceNwc`
+Broaden the `sendNwcRequest` generic for `make_invoice` to:
+```ts
+{
+  invoice?: string;
+  payment_request?: string;
+  bolt11?: string;
+  payment_hash?: string;
+  hash?: string;
+  amount?: number;
+  created_at?: number;
+  expires_at?: number;
+}
+```
+Then resolve:
+- `bolt11 = result.invoice ?? result.payment_request ?? result.bolt11`
+- `paymentHash = result.payment_hash ?? result.hash`
+- Throw a clear error if `bolt11` is missing, including `JSON.stringify(result)` so we can see Coinos's exact shape.
 
-## Proposed fix plan
+### 5. Keep existing retry/timeout strategy
+- First attempt 15s, retry 30s on timeout / connect / publish failure. No other behavior changes.
 
-1. Harden NWC requests
-   - Keep the local `hexToBytes` implementation and ensure no unresolved package subpath imports remain.
-   - Refactor `sendNwcRequestOnce()` so subscription is established before publish, publish failures are surfaced, relay cleanup is deterministic, and the retry path is applied to timeout, relay connection, and publish failures.
-   - Use a practical timeout strategy: short first attempt, one longer retry, clear user-facing error when both fail.
+## Verification
 
-2. Make invoice status mapping real and provider-tolerant
-   - Update NWC `lookupInvoiceNwc()` to map paid only from real settled indicators: `settled_at`, non-empty `preimage`, `state/status === settled/paid/complete`, or explicit `settled/paid === true`.
-   - Map expired from `state/status === expired` or explicit expired indicators.
-   - Never return `PAID` from generic success/OK responses.
+1. Reload preview, open NWC paste flow, paste the Coinos string, click Connect.
+2. Click "Make invoice" in the playground.
+3. Expect console to show: `[NWC] publishing request` → `[NWC] publish acks` (≥1 fulfilled) → `[NWC] raw response event` with decrypted JSON → invoice rendered with `bolt11` and `payment_hash`.
+4. Without paying, click "Lookup invoice" → status `PENDING`.
+5. Pay invoice from any wallet, click "Lookup invoice" again → status `PAID`.
+6. If it still times out, the console logs from step 3 will reveal whether (a) publish was rejected, (b) no response event arrived, or (c) Coinos returned an unexpected field set — then we iterate.
 
-3. Clarify Blink invoice verification
-   - Keep Blink lookup based on the LNURL `verify` response.
-   - Return `PAID` only for `settled === true` or non-empty `preimage`.
-   - Preserve the invoice verify URL in a typed way instead of casting to `Invoice & { verify?: string }` throughout the demo.
+## Out of scope
 
-4. Fix misleading public API/docs
-   - Update the hook typing/docs so Blink callers know to pass the invoice object, or expose a cleaner status lookup API that accepts the invoice returned from `makeInvoice()`.
-   - Update README example to use the actual working pattern.
-
-5. Address the non-working NWC QR path
-   - Either remove/disable the fake scan QR option, or label it as unavailable and direct users to paste a real wallet connection string.
-   - Prefer removing the fake QR for now so users do not scan a dead pairing code.
-
-6. Improve playground diagnostics
-   - Clear stale errors before every lookup.
-   - Show payment hash and, when present, the Blink verify endpoint.
-   - Keep the status display tied to the latest invoice only.
-
-7. Verification after implementation
-   - Run targeted checks on the app preview.
-   - Test Blink flow using the observed verify endpoint behavior: unpaid returns `PENDING` from `settled:false`; paid should return `PAID` only after the provider reports `settled:true` or preimage.
-   - For NWC, verify the UI no longer exposes a fake QR path and that request errors are surfaced clearly instead of causing SSR/runtime failures.
+No changes to Blink connector, widget UI, demo route, or types — this is a focused fix on the NWC request path only.
