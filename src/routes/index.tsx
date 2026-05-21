@@ -326,6 +326,13 @@ function Demo() {
                 bolt11
               </div>
               {invoice.bolt11}
+              <div
+                style={{ marginTop: 10, color: COLORS.primary, marginBottom: 4 }}
+              >
+                payment_hash
+              </div>
+              {invoice.paymentHash}
+
               {status && (
                 <div
                   style={{

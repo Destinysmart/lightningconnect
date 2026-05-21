@@ -31,9 +31,11 @@ export default function App() {
     const invoice = await makeInvoice(5000, "USD", "Invoice #001");
     console.log("bolt11:", invoice.bolt11);
 
-    const status = await lookupInvoice(invoice.paymentHash);
+    // Pass the full invoice object so Blink/LNURL verify URLs are used.
+    const status = await lookupInvoice(invoice.paymentHash, invoice);
     console.log("status:", status); // PAID | PENDING | EXPIRED
   };
+
 
   return (
     <>
@@ -70,7 +72,7 @@ const {
   isConnected,     // boolean
   connectionType,  // 'blink-address' | 'nwc' | null
   makeInvoice,     // (amount, 'USD' | 'BTC', memo) => Promise<Invoice>
-  lookupInvoice,   // (paymentHash) => Promise<'PAID' | 'PENDING' | 'EXPIRED'>
+  lookupInvoice,   // (paymentHash, invoice?) => Promise<'PAID' | 'PENDING' | 'EXPIRED'>
   walletInfo,      // { name, address, currency } | null
 } = useWalletConnect();
 ```
