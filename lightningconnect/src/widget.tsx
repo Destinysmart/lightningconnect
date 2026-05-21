@@ -234,8 +234,8 @@ export function LightningConnect({
                 (e.currentTarget.style.borderColor = t.border)
               }
             >
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
-                🔗 Nostr Wallet Connect
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                <Link2 size={16} aria-hidden /> Nostr Wallet Connect
               </div>
               <div style={{ marginBottom: 6 }}>
                 <span style={tag}>Any Wallet</span>
