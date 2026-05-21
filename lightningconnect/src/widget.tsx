@@ -403,6 +403,88 @@ export function LightningConnect({
             {back}
           </>
         )}
+
+        {view === "blink-api" && (
+          <>
+            <h2 style={title}>Blink API Key</h2>
+            <p style={subtitle}>
+              Advanced — full transaction history and balance access
+            </p>
+            <input
+              style={input}
+              placeholder="Wallet name (optional)"
+              value={walletNameInput}
+              onChange={(e) => setWalletNameInput(e.target.value)}
+            />
+            <div style={{ position: "relative", marginBottom: 12 }}>
+              <input
+                style={{ ...input, paddingRight: 78, marginBottom: 0 }}
+                placeholder="blink_..."
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={pasteApiKey}
+                style={{
+                  position: "absolute",
+                  right: 6,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "transparent",
+                  color: t.primary,
+                  border: `1px solid ${t.border}`,
+                  borderRadius: 8,
+                  padding: "6px 10px",
+                  fontSize: 11,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <ClipboardPaste size={12} aria-hidden /> Paste
+              </button>
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: t.muted,
+                lineHeight: 1.55,
+                marginBottom: 10,
+              }}
+            >
+              1. Go to dashboard.blink.sv → 2. Navigate to API Keys → 3.
+              Create key with READ + RECEIVE scopes
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: t.muted,
+                marginBottom: 12,
+                opacity: 0.85,
+              }}
+            >
+              🔒 Your API key is encrypted and stored securely on your device.
+            </div>
+            {error && (
+              <div
+                style={{ color: "#ef4444", fontSize: 12, marginBottom: 10 }}
+              >
+                {error}
+              </div>
+            )}
+            <button
+              style={primaryBtn}
+              disabled={busy || !apiKeyInput}
+              onClick={submitBlinkApi}
+            >
+              {busy ? "Validating…" : "Connect"}
+            </button>
+            {back}
+          </>
+        )}
       </div>
     </div>
   );
