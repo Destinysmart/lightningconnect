@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Zap, Link2, Lock } from "lucide-react";
 import {
   LightningConnect,
   useWalletConnect,
