@@ -56,15 +56,17 @@ async function sendNwcRequest<T = unknown>(
       reject(new Error("NWC request timed out"));
     }, 15000);
 
-    const filter = {
-      kinds: [NWC_RESPONSE_KIND],
-      authors: [conn.walletPubkey],
-      "#p": [clientPubkey],
-      "#e": [event.id],
-    };
+    const filters = [
+      {
+        kinds: [NWC_RESPONSE_KIND],
+        authors: [conn.walletPubkey],
+        "#p": [clientPubkey],
+        "#e": [event.id],
+      },
+    ] as unknown as Parameters<typeof pool.subscribeMany>[1];
     const sub = pool.subscribeMany(
       relays,
-      [filter as Parameters<typeof pool.subscribeMany>[1][number]],
+      filters,
       {
         onevent: async (ev) => {
           try {

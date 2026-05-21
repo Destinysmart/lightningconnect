@@ -48,11 +48,10 @@ function b64(buf: ArrayBuffer): string {
   return btoa(String.fromCharCode(...new Uint8Array(buf)));
 }
 function unb64(s: string): Uint8Array {
-  return new Uint8Array(
-    atob(s)
-      .split("")
-      .map((c) => c.charCodeAt(0)),
-  );
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
 }
 
 export async function encryptConnection(conn: Connection): Promise<string> {
