@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties } from "react";
-import QRCode from "qrcode";
+
 import type { Connection, Theme } from "./types";
 import { validateBlinkAddress } from "./connectors/blink-address";
 import { parseNwcUri } from "./connectors/nwc";
@@ -24,7 +24,7 @@ const defaultTheme: Required<Theme> = {
   muted: "#A1A1AA",
 };
 
-type View = "home" | "blink" | "nwc" | "nwc-qr" | "nwc-paste";
+type View = "home" | "blink" | "nwc" | "nwc-paste";
 
 export function LightningConnect({
   theme,
@@ -38,7 +38,7 @@ export function LightningConnect({
   const [error, setError] = useState<string | null>(null);
   const [blinkInput, setBlinkInput] = useState("");
   const [nwcInput, setNwcInput] = useState("");
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (!modalOpen) {
@@ -46,21 +46,9 @@ export function LightningConnect({
       setError(null);
       setBlinkInput("");
       setNwcInput("");
-      setQrDataUrl(null);
     }
   }, [modalOpen]);
 
-  useEffect(() => {
-    if (view !== "nwc-qr") return;
-    // Generate a request-for-connection QR (NIP-47 client side request)
-    // For demo purposes we render an instructional payload — the user pastes back
-    const payload = "nostr+walletconnect://?demo=scan-from-your-wallet";
-    QRCode.toDataURL(payload, {
-      width: 256,
-      margin: 1,
-      color: { dark: "#000000", light: "#ffffff" },
-    }).then(setQrDataUrl);
-  }, [view]);
 
   if (!modalOpen) return null;
 
@@ -302,22 +290,9 @@ export function LightningConnect({
         {view === "nwc" && (
           <>
             <h2 style={title}>Nostr Wallet Connect</h2>
-            <p style={subtitle}>How would you like to pair?</p>
-            <button
-              style={optionBtn}
-              onClick={() => setView("nwc-qr")}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.borderColor = t.primary)
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.borderColor = t.border)
-              }
-            >
-              <div style={{ fontSize: 15, fontWeight: 600 }}>📷 Scan QR</div>
-              <div style={{ fontSize: 12, color: t.muted, marginTop: 4 }}>
-                Scan from your wallet app
-              </div>
-            </button>
+            <p style={subtitle}>
+              Paste your wallet's NWC connection string
+            </p>
             <button
               style={optionBtn}
               onClick={() => setView("nwc-paste")}
@@ -335,38 +310,15 @@ export function LightningConnect({
                 nostr+walletconnect://…
               </div>
             </button>
+            <div style={{ fontSize: 11, color: t.muted, marginTop: 4 }}>
+              Get this from your wallet's NWC settings (Alby, Coinos, Mutiny,
+              Zeus, Blink).
+            </div>
             {back}
           </>
         )}
 
-        {view === "nwc-qr" && (
-          <>
-            <h2 style={title}>Scan with your wallet</h2>
-            <p style={subtitle}>
-              Open your NWC-compatible wallet and scan this code
-            </p>
-            <div
-              style={{
-                background: "#fff",
-                padding: 16,
-                borderRadius: t.radius,
-                display: "flex",
-                justifyContent: "center",
-                marginBottom: 16,
-              }}
-            >
-              {qrDataUrl ? (
-                <img src={qrDataUrl} alt="NWC pairing QR" width={224} height={224} />
-              ) : (
-                <div style={{ width: 224, height: 224 }} />
-              )}
-            </div>
-            <button style={linkBtn} onClick={() => setView("nwc-paste")}>
-              Paste connection string instead
-            </button>
-            {back}
-          </>
-        )}
+
 
         {view === "nwc-paste" && (
           <>
