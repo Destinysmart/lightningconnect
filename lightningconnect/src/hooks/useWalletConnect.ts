@@ -17,6 +17,10 @@ import {
   lookupInvoiceBlink,
 } from "../connectors/blink-address";
 import { makeInvoiceNwc, lookupInvoiceNwc } from "../connectors/nwc";
+import {
+  makeInvoiceBlinkApi,
+  lookupInvoiceBlinkApi,
+} from "../connectors/blink-api";
 
 interface WidgetState {
   connection: Connection | null;
