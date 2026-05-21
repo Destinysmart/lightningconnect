@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties } from "react";
-import { Zap, Link2, ClipboardPaste, KeyRound } from "lucide-react";
+import { Zap, Link2, ClipboardPaste, KeyRound, Lock } from "lucide-react";
 
 import type { Connection, Theme } from "./types";
 import { validateBlinkAddress } from "./connectors/blink-address";
