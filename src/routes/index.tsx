@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Zap, Link2, KeyRound, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Zap, Link2, KeyRound, Bitcoin, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import {
   LightningConnect,
   useWalletConnect,
@@ -173,9 +173,10 @@ function Demo() {
             maxWidth: 620,
           }}
         >
-          Drop-in React widget + hook. Connect via Blink Lightning Address,
-          NWC, or Blink API Key. Built-in payment detection — no polling code
-          to write. One component, every user covered.
+          Drop-in React widget + hook. Blink-native with two dedicated
+          connectors, plus universal Lightning Address and Nostr Wallet
+          Connect for every other wallet. Built-in payment detection — no
+          polling code to write. One component, every user covered.
         </p>
 
         <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
@@ -372,48 +373,41 @@ function Demo() {
           )}
         </section>
 
-        <section style={{ marginTop: 56, display: "grid", gap: 16 }}>
-          {[
-            {
-              Icon: Zap,
-              title: "Blink Lightning Address",
-              body: "Just your Blink username. No API key, no dashboard, no setup. Instant.",
-            },
-            {
-              Icon: Link2,
-              title: "Nostr Wallet Connect",
-              body: "Paste a connection string from Alby, Zeus, Coinos, or any NWC wallet. Decentralized and flexible.",
-            },
-            {
-              Icon: KeyRound,
-              title: "Blink API Key",
-              body: "Full control for power users. Unlocks transaction history, balance, and advanced features.",
-            },
-          ].map((f) => (
-            <div
-              key={f.title}
-              style={{
-                padding: 20,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 14,
-                background: COLORS.panel,
-              }}
-            >
-              <div
-                style={{ marginBottom: 8, color: COLORS.primary }}
-                aria-hidden="true"
-              >
-                <f.Icon size={22} />
-              </div>
-              <div style={{ fontWeight: 600, fontSize: 15 }}>{f.title}</div>
-              <div
-                style={{ color: COLORS.muted, fontSize: 14, marginTop: 6 }}
-              >
-                {f.body}
-              </div>
-            </div>
-          ))}
+        <section style={{ marginTop: 56 }}>
+          <ConnectorGroup
+            label="Blink"
+            tint
+            items={[
+              {
+                Icon: Zap,
+                title: "Blink Lightning Address",
+                body: "Just your Blink username. No API key, no dashboard, no setup. Instant.",
+              },
+              {
+                Icon: KeyRound,
+                title: "Blink API Key",
+                body: "Full control for power users. Transaction history, balance, and advanced features.",
+              },
+            ]}
+          />
+          <div style={{ height: 20 }} />
+          <ConnectorGroup
+            label="Other Wallets"
+            items={[
+              {
+                Icon: Bitcoin,
+                title: "Lightning Address",
+                body: "Any user@domain.tld — Wallet of Satoshi, Alby, Coinos, Strike and more. Universal LNURL-pay.",
+              },
+              {
+                Icon: Link2,
+                title: "Nostr Wallet Connect",
+                body: "Beta — pair Alby Hub, Zeus, Phoenix or any NIP-47 wallet by pasting a connection string.",
+              },
+            ]}
+          />
         </section>
+
 
         <footer
           style={{
@@ -551,3 +545,80 @@ const secondaryBtnStyle: React.CSSProperties = {
   cursor: "pointer",
   fontFamily: "ui-monospace, monospace",
 };
+
+type ConnectorItem = {
+  Icon: React.ComponentType<{ size?: number }>;
+  title: string;
+  body: string;
+};
+
+function ConnectorGroup({
+  label,
+  items,
+  tint = false,
+}: {
+  label: string;
+  items: ConnectorItem[];
+  tint?: boolean;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 14,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: tint ? COLORS.primary : COLORS.muted,
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{ flex: 1, height: 1, background: COLORS.border }}
+        />
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gap: 12,
+          padding: tint ? 14 : 0,
+          background: tint ? `${COLORS.primary}0D` : "transparent",
+          border: tint ? `1px solid ${COLORS.primary}33` : "none",
+          borderRadius: tint ? 16 : 0,
+        }}
+      >
+        {items.map((f) => (
+          <div
+            key={f.title}
+            style={{
+              padding: 20,
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: 14,
+              background: COLORS.panel,
+            }}
+          >
+            <div
+              style={{ marginBottom: 8, color: COLORS.primary }}
+              aria-hidden="true"
+            >
+              <f.Icon size={22} />
+            </div>
+            <div style={{ fontWeight: 600, fontSize: 15 }}>{f.title}</div>
+            <div style={{ color: COLORS.muted, fontSize: 14, marginTop: 6 }}>
+              {f.body}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

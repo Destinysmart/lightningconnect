@@ -1,98 +1,79 @@
-## Current state
+## Goal
 
-The `lightningconnect/` subfolder already exists with library-only code:
-- `lightningconnect/package.json` — name `lightningconnect`, exports configured, currently builds via **tsup** (`tsup src/index.ts --format esm,cjs --dts --minify`).
-- `lightningconnect/src/index.ts` — already exports `LightningConnect`, `useWalletConnect`, storage helpers, and all public types.
-- `lightningconnect/src/` — widget, hooks, connectors (blink-address, nwc, blink-api), storage. No demo app code is mixed in.
-- `lightningconnect/README.md`.
+Reorganize the LightningConnect widget into two visually-grouped sections — **Blink** (native, premium) and **Other Wallets** (universal) — exposing four connector entry points instead of three. Update the landing page and README to match.
 
-Missing vs your spec:
-- No `lightningconnect/tsconfig.json` (the lib currently rides on the root `tsconfig.json`).
-- No `lightningconnect/vite.lib.config.ts` (build uses tsup, not Vite library mode).
-- `main` / `module` field names use `.cjs` / `.js`, you asked for `.cjs.js` / `.esm.js`.
+## UI changes — `lightningconnect/src/widget.tsx`
 
-The root demo app (TanStack Start in `src/`) stays untouched.
+Home view replaces the flat 3-button list with two labeled groups:
 
-## Plan
+```text
+Connect Wallet
+Choose how to receive payments
 
-### 1. Switch build tool from tsup to Vite library mode
+── BLINK ──────────────────────────       (warm-tinted panel)
+  ⚡ Blink Lightning Address
+     [Recommended] [Instant]
+     Just your Blink username
 
-Create `lightningconnect/vite.lib.config.ts`:
+  🔑 Blink API Key
+     [Advanced] [Full Control]
+     Transaction history + balance access
 
-```ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import dts from "vite-plugin-dts";
-import { resolve } from "node:path";
+── OTHER WALLETS ──────────────────
+  ₿  Lightning Address
+     [Universal]
+     Wallet of Satoshi, Alby, Coinos, Strike and more
 
-export default defineConfig({
-  plugins: [react(), dts({ insertTypesEntry: true, rollupTypes: true })],
-  build: {
-    lib: {
-      entry: resolve(__dirname, "src/index.ts"),
-      name: "LightningConnect",
-      formats: ["es", "cjs"],
-      fileName: (format) => format === "es" ? "index.esm.js" : "index.cjs.js",
-    },
-    outDir: "dist",
-    sourcemap: true,
-    rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime"],
-      output: { globals: { react: "React", "react-dom": "ReactDOM" } },
-    },
-  },
-});
+  🔗 Nostr Wallet Connect
+     [Beta] [Any NWC Wallet]
+     Alby Hub, Zeus, Phoenix and any NWC compatible wallet
+
+  Skip for now
 ```
 
-Bundled deps (`nostr-tools`, `@noble/hashes`, `qrcode`, `zustand`, `lucide-react`) stay inlined so consumers only need React as a peer.
+Implementation notes:
+- Add a `SectionDivider` inline component rendering a small uppercase label with hairline rules on each side, using theme `muted` and `border` tokens.
+- Wrap the Blink group in a container with a subtle warm tint (e.g. `background: ${primary}0A`, 1px border, same radius) so it reads as one card. Other Wallets group stays unstyled (flush against the modal background).
+- Add a new `View` value: `"ln-address"` for the generic Lightning Address flow. Keep `"blink"`, `"nwc"`, `"nwc-paste"`, `"blink-api"` as-is.
+- Icons: keep `Zap` for Blink address, `KeyRound` for Blink API, `Link2` for NWC. Use the lucide `Bitcoin` icon for the generic Lightning Address option.
 
-### 2. Update `lightningconnect/package.json`
+### New generic "Lightning Address" view
 
-- `main`: `dist/index.cjs.js`
-- `module`: `dist/index.esm.js`
-- `types`: `dist/index.d.ts`
-- `files`: `["dist", "README.md"]`
-- `exports`: update `import` → `./dist/index.esm.js`, `require` → `./dist/index.cjs.js`
-- `scripts.build`: `vite build --config vite.lib.config.ts`
-- `scripts.dev`: `vite build --config vite.lib.config.ts --watch`
-- Add devDeps: `vite`, `@vitejs/plugin-react`, `vite-plugin-dts` (kept local to the lib's publish manifest — they can be installed at the root for dev too).
+Reuses `validateBlinkAddress` (it already parses `user@domain.tld` and fetches `https://{domain}/.well-known/lnurlp/{user}`) — only the UX differs:
+- Placeholder: `satoshi@walletofsatoshi.com`
+- Validation: require the input to contain `@` before calling `validateBlinkAddress`; show "Enter a full Lightning Address like `you@wallet.com`" otherwise. (The existing Blink view keeps its `username` shortcut.)
+- Submit path calls the same connector and stores the same `blink-address` connection shape — no type or storage changes.
 
-### 3. Create `lightningconnect/tsconfig.json`
+### Wording tweaks
+- Blink view subtitle stays "Enter your username or full address".
+- NWC option subtext changes from "Blink, Alby, Zeus, Coinos" to "Alby Hub, Zeus, Phoenix and any NWC compatible wallet" (Blink is no longer name-dropped here since it has its own section).
 
-```json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "jsx": "react-jsx",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "declaration": true,
-    "declarationDir": "dist",
-    "outDir": "dist",
-    "isolatedModules": true,
-    "resolveJsonModule": true,
-    "types": ["node"]
-  },
-  "include": ["src"]
-}
-```
+## Landing page — `src/routes/index.tsx`
 
-Root `tsconfig.json` stays scoped to the demo app via its existing `include`, so the two don't collide.
+Update the connector showcase / feature list to mirror the two-category split: a "Blink-native" group highlighting Address + API Key, and an "Other Wallets" group highlighting generic Lightning Address + NWC. No business-logic changes; copy and section layout only.
 
-### 4. Verification
+## README — `lightningconnect/README.md`
 
-From the project root: `cd lightningconnect && bun install && bun run build`, then inspect `lightningconnect/dist/` for `index.esm.js`, `index.cjs.js`, `index.d.ts`. Confirm `react` is external in the output.
+Replace "The three connectors" section with "The four connectors", organized as:
 
-## On your repo question
+- **Blink**
+  - Blink Lightning Address (recommended, instant)
+  - Blink API Key (advanced, full account access)
+- **Other Wallets**
+  - Lightning Address (any `user@domain.tld`, LNURL-pay)
+  - Nostr Wallet Connect (Beta — Alby Hub, Zeus, Phoenix, any NIP-47 wallet)
 
-I can only see this Lovable workspace, not your GitHub remote. In this workspace the `lightningconnect/` subfolder **does** already exist (created in earlier turns). Once GitHub sync runs, it will be there too — you can then clone the repo, `cd lightningconnect`, `npm publish`.
+Update the tagline paragraph and the "Why" bullets to say "four connectors" and mention the Blink-native positioning. Per-connector behaviour table grows by one row for generic Lightning Address (same primitives as the Blink address row).
 
 ## Out of scope
 
-- No changes to the root demo app, its `vite.config.ts`, or `package.json`.
-- No npm publish from here — you publish from your clone.
-- No changes to library source (`widget.tsx`, connectors, hooks).
+- No changes to `types.ts`, storage, connectors, or the `useWalletConnect` hook.
+- No version bump.
+- No tab/multi-screen redesign — single scrollable modal as today.
+
+## Technical summary
+
+Files touched:
+- `lightningconnect/src/widget.tsx` — section grouping, warm-tinted Blink panel, new `ln-address` view, NWC subtext tweak.
+- `lightningconnect/README.md` — four-connector docs under two categories.
+- `src/routes/index.tsx` — landing page connector showcase reorganized into Blink / Other Wallets.
