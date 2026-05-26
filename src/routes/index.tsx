@@ -173,9 +173,10 @@ function Demo() {
             maxWidth: 620,
           }}
         >
-          Drop-in React widget + hook. Connect via Blink Lightning Address,
-          NWC, or Blink API Key. Built-in payment detection — no polling code
-          to write. One component, every user covered.
+          Drop-in React widget + hook. Blink-native with two dedicated
+          connectors, plus universal Lightning Address and Nostr Wallet
+          Connect for every other wallet. Built-in payment detection — no
+          polling code to write. One component, every user covered.
         </p>
 
         <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
