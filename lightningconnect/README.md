@@ -1,8 +1,8 @@
 # ⚡ LightningConnect
 
-**Zero-friction Bitcoin wallet connection for any web app. Three connectors, one component, automatic payment detection.**
+**Zero-friction Bitcoin wallet connection for any web app. Four connectors across two categories, one component, automatic payment detection.**
 
-LightningConnect is a drop-in React widget + hook that solves the wallet connection AND payment detection problem for Bitcoin web apps. Users connect with a Blink Lightning address, any Nostr Wallet Connect (NWC) wallet, or — for power users — a Blink API Key. Your app makes invoices and gets a callback when they're paid. No polling code to write.
+LightningConnect is a drop-in React widget + hook that solves the wallet connection AND payment detection problem for Bitcoin web apps. It is Blink-native — with two dedicated Blink connectors no other library ships — and universally compatible with every other wallet via generic Lightning Address and Nostr Wallet Connect. Your app makes invoices and gets a callback when they're paid. No polling code to write.
 
 > **One component. Every user covered.**
 
