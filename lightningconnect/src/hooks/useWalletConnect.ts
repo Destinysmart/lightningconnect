@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type {
   Connection,
   ConnectionType,
@@ -21,6 +21,7 @@ import {
   makeInvoiceBlinkApi,
   lookupInvoiceBlinkApi,
 } from "../connectors/blink-api";
+import { watchPayment } from "../lib/paymentWatcher";
 
 interface WidgetState {
   connection: Connection | null;
@@ -44,7 +45,28 @@ interface InvoiceWithVerify extends Invoice {
   verify?: string;
 }
 
-export function useWalletConnect() {
+export interface UseWalletConnectOptions {
+  onPayment?: (invoice: Invoice) => void;
+  onExpiry?: (invoice: Invoice) => void;
+  onError?: (error: Error, invoice: Invoice) => void;
+  /** Polling interval in ms (default 5000). */
+  pollInterval?: number;
+}
+
+function lookupFor(
+  connection: Connection,
+  invoice: InvoiceWithVerify,
+): () => Promise<InvoiceStatus> {
+  if (connection.type === "blink-address") {
+    return () => lookupInvoiceBlink(invoice.paymentHash, invoice.verify);
+  }
+  if (connection.type === "blink-api") {
+    return () => lookupInvoiceBlinkApi(connection, invoice.paymentHash);
+  }
+  return () => lookupInvoiceNwc(connection, invoice.paymentHash);
+}
+
+export function useWalletConnect(options: UseWalletConnectOptions = {}) {
   const {
     connection,
     hydrated,
@@ -53,6 +75,14 @@ export function useWalletConnect() {
     setModalOpen,
   } = useWidgetStore();
 
+  // Keep latest callbacks in a ref so already-running watchers see updates
+  // without needing to be torn down.
+  const optsRef = useRef(options);
+  optsRef.current = options;
+
+  // Active watchers keyed by paymentHash. Cleaned up on unmount.
+  const watchersRef = useRef<Map<string, () => void>>(new Map());
+
   useEffect(() => {
     if (hydrated) return;
     loadConnection().then((c) => {
@@ -60,6 +90,14 @@ export function useWalletConnect() {
       setHydrated(true);
     });
   }, [hydrated, setConnection, setHydrated]);
+
+  useEffect(() => {
+    const map = watchersRef.current;
+    return () => {
+      map.forEach((cancel) => cancel());
+      map.clear();
+    };
+  }, []);
 
   const connect = () => setModalOpen(true);
 
@@ -74,13 +112,33 @@ export function useWalletConnect() {
     memo: string,
   ): Promise<Invoice> => {
     if (!connection) throw new Error("No wallet connected");
+    let invoice: Invoice;
     if (connection.type === "blink-address") {
-      return makeInvoiceBlink(connection, amount, currency, memo);
+      invoice = await makeInvoiceBlink(connection, amount, currency, memo);
+    } else if (connection.type === "blink-api") {
+      invoice = await makeInvoiceBlinkApi(connection, amount, currency, memo);
+    } else {
+      invoice = await makeInvoiceNwc(connection, amount, currency, memo);
     }
-    if (connection.type === "blink-api") {
-      return makeInvoiceBlinkApi(connection, amount, currency, memo);
+
+    // Auto-start payment watcher when onPayment is provided.
+    if (optsRef.current.onPayment) {
+      const lookup = lookupFor(connection, invoice as InvoiceWithVerify);
+      const cancel = watchPayment({
+        invoice,
+        lookup,
+        pollInterval: optsRef.current.pollInterval ?? 5000,
+        onPayment: (inv) => optsRef.current.onPayment?.(inv),
+        onExpiry: (inv) => optsRef.current.onExpiry?.(inv),
+        onError: (err, inv) => optsRef.current.onError?.(err, inv),
+        onDone: () => {
+          watchersRef.current.delete(invoice.paymentHash);
+        },
+      });
+      watchersRef.current.set(invoice.paymentHash, cancel);
     }
-    return makeInvoiceNwc(connection, amount, currency, memo);
+
+    return invoice;
   };
 
   const lookupInvoice = async (
@@ -95,6 +153,14 @@ export function useWalletConnect() {
       return lookupInvoiceBlinkApi(connection, paymentHash);
     }
     return lookupInvoiceNwc(connection, paymentHash);
+  };
+
+  const cancelWatch = (invoice: Invoice) => {
+    const cancel = watchersRef.current.get(invoice.paymentHash);
+    if (cancel) {
+      cancel();
+      watchersRef.current.delete(invoice.paymentHash);
+    }
   };
 
   const walletInfo: WalletInfo | null = (() => {
@@ -127,6 +193,7 @@ export function useWalletConnect() {
     connectionType: (connection?.type ?? null) as ConnectionType | null,
     makeInvoice,
     lookupInvoice,
+    cancelWatch,
     walletInfo,
   };
 }
