@@ -215,7 +215,7 @@ export function LightningConnect({
   const primaryBtn: CSSProperties = {
     width: "100%",
     background: t.primary,
-    color: "#0A0A0A",
+    color: t.background,
     border: "none",
     borderRadius: t.radius,
     padding: "12px 16px",
