@@ -26,7 +26,7 @@ const defaultTheme: Required<Theme> = {
   muted: "#A1A1AA",
 };
 
-type View = "home" | "blink" | "nwc" | "nwc-paste" | "blink-api";
+type View = "home" | "blink" | "ln-address" | "nwc" | "nwc-paste" | "blink-api";
 
 export function LightningConnect({
   theme,
