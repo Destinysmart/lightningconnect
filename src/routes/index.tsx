@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Zap, Link2, KeyRound, Bitcoin, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Zap,
+  Link2,
+  KeyRound,
+  Bitcoin,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import {
   LightningConnect,
   useWalletConnect,
@@ -11,24 +19,32 @@ export const Route = createFileRoute("/")({
   component: Demo,
   head: () => ({
     meta: [
-      { title: "LightningConnect — Zero-friction Bitcoin wallet connect" },
+      { title: "LightningConnect — Bitcoin wallet connection for React" },
       {
         name: "description",
         content:
-          "Drop-in React widget and hook for Bitcoin wallet connection. Auto payment detection, three connectors, one component.",
+          "Drop-in React widget and hook for Bitcoin wallet connection. Built-in payment detection, four connectors, one component.",
       },
     ],
   }),
 });
 
+// Paper & Ink palette
 const COLORS = {
-  bg: "#0A0A0A",
-  panel: "#111111",
-  fg: "#F5F5F5",
-  muted: "#A1A1AA",
-  border: "#262626",
-  primary: "#F7931A",
-};
+  bg: "#f5f3ee",
+  surface: "#e8e4dd",
+  border: "#dcd9d1",
+  borderSoft: "rgba(13,13,13,0.08)",
+  ink: "#0d0d0d",
+  text: "#2d2d2d",
+  muted: "rgba(45,45,45,0.6)",
+  mutedFaint: "rgba(45,45,45,0.4)",
+} as const;
+
+const FONT_SANS =
+  '"Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+const FONT_DISPLAY = '"Sora", ' + FONT_SANS;
+const FONT_MONO = '"JetBrains Mono", ui-monospace, SFMono-Regular, monospace';
 
 type WatchStatus = "idle" | "watching" | "paid" | "expired" | "error";
 
@@ -112,318 +128,542 @@ function Demo() {
       style={{
         minHeight: "100vh",
         background: COLORS.bg,
-        color: COLORS.fg,
-        fontFamily:
-          'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+        color: COLORS.text,
+        fontFamily: FONT_SANS,
       }}
     >
       <LightningConnect
         theme={{
-          primary: COLORS.primary,
-          background: COLORS.panel,
-          foreground: COLORS.fg,
+          primary: COLORS.ink,
+          background: COLORS.bg,
+          foreground: COLORS.ink,
           border: COLORS.border,
-          muted: COLORS.muted,
+          muted: COLORS.muted as string,
+          radius: "6px",
         }}
         onConnect={(w) => console.log("Connected:", w)}
       />
 
-      <main
+      <div
         style={{
-          maxWidth: 880,
-          margin: "0 auto",
-          padding: "80px 24px 120px",
+          display: "flex",
+          justifyContent: "center",
+          padding: "48px 24px 96px",
         }}
       >
         <div
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "6px 12px",
-            border: `1px solid ${COLORS.border}`,
-            borderRadius: 999,
-            fontSize: 12,
-            color: COLORS.muted,
-            marginBottom: 28,
+            maxWidth: 1120,
+            width: "100%",
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+            gap: 80,
+            alignItems: "start",
           }}
+          className="lc-grid"
         >
-          <Zap size={12} aria-hidden style={{ color: COLORS.primary }} /> v1.0.0 — npm
-          install lightningconnect
-        </div>
-
-        <h1
-          style={{
-            fontSize: 56,
-            lineHeight: 1.05,
-            letterSpacing: "-0.03em",
-            margin: 0,
-            fontWeight: 700,
-          }}
-        >
-          Zero-friction Bitcoin
-          <br />
-          wallet connection.
-        </h1>
-        <p
-          style={{
-            fontSize: 18,
-            color: COLORS.muted,
-            marginTop: 20,
-            maxWidth: 620,
-          }}
-        >
-          Drop-in React widget + hook. Blink-native with two dedicated
-          connectors, plus universal Lightning Address and Nostr Wallet
-          Connect for every other wallet. Built-in payment detection — no
-          polling code to write. One component, every user covered.
-        </p>
-
-        <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
-          {!isConnected ? (
-            <button
-              onClick={connect}
-              style={{
-                background: COLORS.primary,
-                color: "#0A0A0A",
-                border: "none",
-                borderRadius: 12,
-                padding: "14px 22px",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Try the widget →
-            </button>
-          ) : (
-            <button
-              onClick={disconnect}
-              style={{
-                background: "transparent",
-                color: COLORS.fg,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 12,
-                padding: "14px 22px",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Disconnect {walletInfo?.address}
-            </button>
-          )}
-          <Link
-            to="/readme"
-            style={{
-              background: "transparent",
-              color: COLORS.fg,
-              border: `1px solid ${COLORS.border}`,
-              borderRadius: 12,
-              padding: "14px 22px",
-              fontSize: 15,
-              fontWeight: 600,
-              textDecoration: "none",
-              display: "inline-flex",
-              alignItems: "center",
-            }}
-          >
-            View README
-          </Link>
-        </div>
-
-        <section
-          style={{
-            marginTop: 64,
-            padding: 28,
-            background: COLORS.panel,
-            border: `1px solid ${COLORS.border}`,
-            borderRadius: 16,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 13, color: COLORS.muted }}>
-                Live playground
+          {/* LEFT — pitch */}
+          <section style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                <span
+                  style={{
+                    padding: "3px 8px",
+                    borderRadius: 4,
+                    border: `1px solid ${COLORS.borderSoft}`,
+                    fontFamily: FONT_MONO,
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.02em",
+                    color: COLORS.text,
+                  }}
+                >
+                  v1.0.0
+                </span>
+                <code
+                  style={{
+                    fontFamily: FONT_MONO,
+                    fontSize: 11,
+                    background: COLORS.surface,
+                    color: COLORS.muted as string,
+                    padding: "3px 8px",
+                    borderRadius: 4,
+                    fontStyle: "italic",
+                  }}
+                >
+                  npm install lightningconnect
+                </code>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>
-                {isConnected
-                  ? `Connected via ${connectionType}`
-                  : "Not connected"}
-              </div>
-            </div>
-            <div
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 999,
-                background: isConnected ? "#22c55e" : COLORS.muted,
-              }}
-            />
-          </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr auto",
-              gap: 10,
-              marginBottom: 12,
-            }}
-          >
-            <input
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="amount"
-              style={inputStyle}
-            />
-            <input
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              placeholder="memo"
-              style={inputStyle}
-            />
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value as "BTC" | "USD")}
-              style={inputStyle}
-            >
-              <option value="BTC">sats</option>
-              <option value="USD">USD</option>
-            </select>
-          </div>
-
-          <div style={{ display: "flex", gap: 10 }}>
-            <button
-              onClick={handleMake}
-              disabled={!isConnected || busy}
-              style={{
-                ...primaryBtnStyle,
-                opacity: !isConnected || busy ? 0.5 : 1,
-              }}
-            >
-              makeInvoice()
-            </button>
-            <button
-              onClick={handleCancel}
-              disabled={watchStatus !== "watching"}
-              style={{
-                ...secondaryBtnStyle,
-                opacity: watchStatus !== "watching" ? 0.5 : 1,
-              }}
-            >
-              cancelWatch()
-            </button>
-          </div>
-
-          {err && (
-            <div
-              style={{
-                marginTop: 16,
-                color: "#ef4444",
-                fontSize: 13,
-                fontFamily: "ui-monospace, monospace",
-              }}
-            >
-              {err}
-            </div>
-          )}
-
-          {invoice && (
-            <div
-              style={{
-                marginTop: 20,
-                padding: 16,
-                background: "#000",
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 10,
-                fontSize: 12,
-                fontFamily: "ui-monospace, monospace",
-                wordBreak: "break-all",
-                color: COLORS.muted,
-              }}
-            >
-              <div style={{ color: COLORS.primary, marginBottom: 6 }}>
-                bolt11
-              </div>
-              {invoice.bolt11}
-              <div
+              <h1
                 style={{
-                  marginTop: 10,
-                  color: COLORS.primary,
-                  marginBottom: 4,
+                  fontFamily: FONT_DISPLAY,
+                  fontSize: "clamp(40px, 5vw, 60px)",
+                  lineHeight: 1.08,
+                  letterSpacing: "-0.02em",
+                  fontWeight: 600,
+                  color: COLORS.ink,
+                  margin: 0,
+                  maxWidth: 520,
                 }}
               >
-                payment_hash
-              </div>
-              {invoice.paymentHash}
+                Zero-friction Bitcoin wallet connection.
+              </h1>
 
-              <WatchIndicator
-                status={watchStatus}
-                pollCount={pollCount}
-                error={watchError}
-              />
+              <p
+                style={{
+                  fontSize: 17,
+                  lineHeight: 1.6,
+                  color: COLORS.text,
+                  margin: 0,
+                  maxWidth: 480,
+                }}
+              >
+                Drop-in React widget + hook. Blink-native with two dedicated
+                connectors, plus universal Lightning Address and Nostr Wallet
+                Connect for every other wallet. Built-in payment detection — no
+                polling code to write. One component, every user covered.
+              </p>
             </div>
-          )}
-        </section>
 
-        <section style={{ marginTop: 56 }}>
-          <ConnectorGroup
-            label="Blink"
-            tint
-            items={[
-              {
-                Icon: Zap,
-                title: "Blink Lightning Address",
-                body: "Just your Blink username. No API key, no dashboard, no setup. Instant.",
-              },
-              {
-                Icon: KeyRound,
-                title: "Blink API Key",
-                body: "Full control for power users. Transaction history, balance, and advanced features.",
-              },
-            ]}
-          />
-          <div style={{ height: 20 }} />
-          <ConnectorGroup
-            label="Other Wallets"
-            items={[
-              {
-                Icon: Bitcoin,
-                title: "Lightning Address",
-                body: "Any user@domain.tld — Wallet of Satoshi, Alby, Coinos, Strike and more. Universal LNURL-pay.",
-              },
-              {
-                Icon: Link2,
-                title: "Nostr Wallet Connect",
-                body: "Beta — pair Alby Hub, Zeus, Phoenix or any NIP-47 wallet by pasting a connection string.",
-              },
-            ]}
-          />
-        </section>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              {!isConnected ? (
+                <button onClick={connect} style={primaryBtn}>
+                  Try the widget →
+                </button>
+              ) : (
+                <button onClick={disconnect} style={secondaryBtn}>
+                  Disconnect {walletInfo?.address}
+                </button>
+              )}
+              <Link to="/readme" style={{ ...secondaryBtn, textDecoration: "none" }}>
+                View README
+              </Link>
+            </div>
 
+            <dl
+              style={{
+                marginTop: 8,
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0,1fr))",
+                gap: 24,
+                paddingTop: 32,
+                borderTop: `1px solid ${COLORS.border}`,
+                maxWidth: 480,
+              }}
+            >
+              {[
+                ["4", "connectors"],
+                ["<30kb", "gzipped"],
+                ["React 18+", "MIT licensed"],
+              ].map(([k, v]) => (
+                <div key={v}>
+                  <dt
+                    style={{
+                      fontFamily: FONT_DISPLAY,
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: COLORS.ink,
+                    }}
+                  >
+                    {k}
+                  </dt>
+                  <dd
+                    style={{
+                      margin: 0,
+                      fontSize: 11,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: COLORS.mutedFaint as string,
+                      fontFamily: FONT_MONO,
+                      marginTop: 4,
+                    }}
+                  >
+                    {v}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
 
-        <footer
+          {/* RIGHT — playground + connectors */}
+          <section style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+            {/* PLAYGROUND */}
+            <div
+              style={{
+                background: COLORS.surface,
+                border: `1px solid ${COLORS.borderSoft}`,
+                borderRadius: 6,
+                padding: 28,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: 24,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: FONT_MONO,
+                      fontSize: 10,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.16em",
+                      color: COLORS.mutedFaint as string,
+                      marginBottom: 6,
+                    }}
+                  >
+                    Live playground
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: FONT_DISPLAY,
+                      fontSize: 17,
+                      fontWeight: 500,
+                      color: COLORS.ink,
+                    }}
+                  >
+                    {isConnected
+                      ? `Connected · ${connectionType}`
+                      : "Not connected"}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 999,
+                    background: isConnected ? "#16a34a" : "rgba(45,45,45,0.25)",
+                    marginTop: 8,
+                  }}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0,4fr) minmax(0,5fr) minmax(0,3fr)",
+                  gap: 8,
+                  marginBottom: 10,
+                }}
+              >
+                <input
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="amount"
+                  style={fieldStyle(true)}
+                />
+                <input
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                  placeholder="memo"
+                  style={fieldStyle()}
+                />
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value as "BTC" | "USD")}
+                  style={fieldStyle(true)}
+                >
+                  <option value="BTC">sats</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  onClick={handleMake}
+                  disabled={!isConnected || busy}
+                  style={{
+                    ...monoPrimaryBtn,
+                    opacity: !isConnected || busy ? 0.45 : 1,
+                    cursor: !isConnected || busy ? "not-allowed" : "pointer",
+                  }}
+                >
+                  makeInvoice()
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={watchStatus !== "watching"}
+                  style={{
+                    ...monoSecondaryBtn,
+                    opacity: watchStatus !== "watching" ? 0.45 : 1,
+                    cursor: watchStatus !== "watching" ? "not-allowed" : "pointer",
+                  }}
+                >
+                  cancelWatch()
+                </button>
+              </div>
+
+              {err && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    color: "#b91c1c",
+                    fontSize: 12,
+                    fontFamily: FONT_MONO,
+                  }}
+                >
+                  {err}
+                </div>
+              )}
+
+              {invoice && (
+                <div
+                  style={{
+                    marginTop: 18,
+                    padding: 14,
+                    background: COLORS.bg,
+                    border: `1px solid ${COLORS.borderSoft}`,
+                    borderRadius: 4,
+                    fontFamily: FONT_MONO,
+                    fontSize: 11,
+                    color: COLORS.muted as string,
+                    wordBreak: "break-all",
+                  }}
+                >
+                  <div style={metaLabel}>bolt11</div>
+                  {invoice.bolt11}
+                  <div style={{ ...metaLabel, marginTop: 10 }}>payment_hash</div>
+                  {invoice.paymentHash}
+                  <WatchIndicator
+                    status={watchStatus}
+                    pollCount={pollCount}
+                    error={watchError}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* CONNECTORS */}
+            <ConnectorGroup label="Blink">
+              <ConnectorRow
+                Icon={Zap}
+                title="Blink Lightning Address"
+                body="Just your Blink username. No API key, no dashboard, no setup. Instant."
+                emphasized
+              />
+              <ConnectorRow
+                Icon={KeyRound}
+                title="Blink API Key"
+                body="Full control for power users. Transaction history, balance, and advanced features."
+                emphasized
+              />
+            </ConnectorGroup>
+
+            <ConnectorGroup label="Other Wallets">
+              <ConnectorRow
+                Icon={Bitcoin}
+                title="Lightning Address"
+                body="Any user@domain.tld — Wallet of Satoshi, Alby, Coinos, Strike and more. Universal LNURL-pay."
+              />
+              <ConnectorRow
+                Icon={Link2}
+                title="Nostr Wallet Connect"
+                body="Beta — pair Alby Hub, Zeus, Phoenix or any NIP-47 wallet by pasting a connection string."
+              />
+            </ConnectorGroup>
+
+            <div
+              style={{
+                marginTop: 8,
+                paddingTop: 18,
+                borderTop: `1px solid ${COLORS.border}`,
+                display: "flex",
+                justifyContent: "space-between",
+                fontFamily: FONT_MONO,
+                fontSize: 10,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: COLORS.mutedFaint as string,
+              }}
+            >
+              <span>lightningconnect · v1.0.0 · MIT</span>
+              <span>React 18+</span>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .lc-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 48px !important; }
+        }
+        @keyframes lc-spin { to { transform: rotate(360deg) } }
+      `}</style>
+    </div>
+  );
+}
+
+const primaryBtn: React.CSSProperties = {
+  background: COLORS.ink,
+  color: COLORS.bg,
+  border: `1px solid ${COLORS.ink}`,
+  borderRadius: 4,
+  padding: "12px 22px",
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: "pointer",
+  fontFamily: FONT_SANS,
+};
+
+const secondaryBtn: React.CSSProperties = {
+  background: "transparent",
+  color: COLORS.ink,
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: 4,
+  padding: "12px 22px",
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: "pointer",
+  fontFamily: FONT_SANS,
+  display: "inline-flex",
+  alignItems: "center",
+};
+
+const monoPrimaryBtn: React.CSSProperties = {
+  flex: 1,
+  background: COLORS.ink,
+  color: COLORS.bg,
+  border: `1px solid ${COLORS.ink}`,
+  borderRadius: 4,
+  padding: "10px 14px",
+  fontSize: 12,
+  fontFamily: FONT_MONO,
+};
+
+const monoSecondaryBtn: React.CSSProperties = {
+  flex: 1,
+  background: "transparent",
+  color: COLORS.text,
+  border: `1px solid ${COLORS.borderSoft}`,
+  borderRadius: 4,
+  padding: "10px 14px",
+  fontSize: 12,
+  fontFamily: FONT_MONO,
+};
+
+function fieldStyle(mono = false): React.CSSProperties {
+  return {
+    width: "100%",
+    background: COLORS.bg,
+    color: COLORS.ink,
+    border: `1px solid ${COLORS.borderSoft}`,
+    borderRadius: 4,
+    padding: "10px 12px",
+    fontSize: 13,
+    fontFamily: mono ? FONT_MONO : FONT_SANS,
+    outline: "none",
+    boxSizing: "border-box",
+  };
+}
+
+const metaLabel: React.CSSProperties = {
+  color: COLORS.ink,
+  fontSize: 10,
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  marginBottom: 4,
+};
+
+function ConnectorGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 12,
+        }}
+      >
+        <span
           style={{
-            marginTop: 80,
-            paddingTop: 24,
-            borderTop: `1px solid ${COLORS.border}`,
-            color: COLORS.muted,
-            fontSize: 13,
-            display: "flex",
-            justifyContent: "space-between",
+            fontFamily: FONT_MONO,
+            fontSize: 10,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: COLORS.mutedFaint as string,
           }}
         >
-          <span>lightningconnect · v1.0.0 · MIT</span>
-          <span>&lt;30kb gzipped · React 18+</span>
-        </footer>
-      </main>
+          {label}
+        </span>
+        <span style={{ flex: 1, height: 1, background: COLORS.borderSoft }} />
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>{children}</div>
+    </div>
+  );
+}
+
+function ConnectorRow({
+  Icon,
+  title,
+  body,
+  emphasized = false,
+}: {
+  Icon: React.ComponentType<{ size?: number }>;
+  title: string;
+  body: string;
+  emphasized?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        padding: 16,
+        border: `1px solid ${COLORS.borderSoft}`,
+        borderRadius: 4,
+        background: "transparent",
+        display: "flex",
+        gap: 12,
+        alignItems: "flex-start",
+        transition: "border-color 120ms",
+      }}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.borderColor = "rgba(13,13,13,0.4)")
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.borderColor = COLORS.borderSoft)
+      }
+    >
+      <div
+        style={{
+          marginTop: 2,
+          color: emphasized ? COLORS.ink : (COLORS.mutedFaint as string),
+        }}
+        aria-hidden
+      >
+        <Icon size={14} />
+      </div>
+      <div>
+        <div
+          style={{
+            fontFamily: FONT_DISPLAY,
+            fontSize: 13,
+            fontWeight: 600,
+            color: COLORS.ink,
+          }}
+        >
+          {title}
+        </div>
+        <div
+          style={{
+            fontSize: 12,
+            color: COLORS.muted as string,
+            marginTop: 4,
+            lineHeight: 1.5,
+          }}
+        >
+          {body}
+        </div>
+      </div>
     </div>
   );
 }
@@ -441,184 +681,40 @@ function WatchIndicator({
   const row: React.CSSProperties = {
     marginTop: 14,
     padding: "10px 12px",
-    borderRadius: 8,
+    borderRadius: 4,
     display: "flex",
     alignItems: "center",
     gap: 10,
     fontSize: 12,
+    fontFamily: FONT_SANS,
   };
-
   if (status === "watching") {
     return (
-      <div
-        style={{
-          ...row,
-          background: "rgba(161,161,170,0.12)",
-          color: COLORS.fg,
-        }}
-      >
-        <Loader2
-          size={14}
-          aria-hidden
-          style={{ animation: "spin 1s linear infinite" }}
-        />
-        <span style={{ color: COLORS.muted }}>
-          Watching for payment — checked {pollCount} time
-          {pollCount === 1 ? "" : "s"}…
+      <div style={{ ...row, background: "rgba(13,13,13,0.05)", color: COLORS.ink }}>
+        <Loader2 size={14} aria-hidden style={{ animation: "lc-spin 1s linear infinite" }} />
+        <span style={{ color: COLORS.muted as string }}>
+          Watching for payment — checked {pollCount} time{pollCount === 1 ? "" : "s"}…
         </span>
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
   if (status === "paid") {
     return (
-      <div
-        style={{
-          ...row,
-          background: "rgba(34,197,94,0.15)",
-          color: "#22c55e",
-          fontWeight: 600,
-        }}
-      >
-        <CheckCircle2 size={14} aria-hidden /> Payment received!
+      <div style={{ ...row, background: "rgba(22,163,74,0.12)", color: "#15803d", fontWeight: 600 }}>
+        <CheckCircle2 size={14} aria-hidden /> Payment received
       </div>
     );
   }
   if (status === "expired") {
     return (
-      <div
-        style={{
-          ...row,
-          background: "rgba(239,68,68,0.15)",
-          color: "#ef4444",
-          fontWeight: 600,
-        }}
-      >
+      <div style={{ ...row, background: "rgba(180,83,9,0.12)", color: "#b45309", fontWeight: 600 }}>
         <XCircle size={14} aria-hidden /> Invoice expired
       </div>
     );
   }
   return (
-    <div
-      style={{
-        ...row,
-        background: "rgba(239,68,68,0.15)",
-        color: "#ef4444",
-      }}
-    >
-      <XCircle size={14} aria-hidden /> {error ?? "Watcher error"}
-    </div>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  background: "#000",
-  color: COLORS.fg,
-  border: `1px solid ${COLORS.border}`,
-  borderRadius: 10,
-  padding: "12px 14px",
-  fontSize: 14,
-  outline: "none",
-  fontFamily: "inherit",
-};
-
-const primaryBtnStyle: React.CSSProperties = {
-  background: COLORS.primary,
-  color: "#0A0A0A",
-  border: "none",
-  borderRadius: 10,
-  padding: "12px 18px",
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-  fontFamily: "ui-monospace, monospace",
-};
-
-const secondaryBtnStyle: React.CSSProperties = {
-  background: "transparent",
-  color: COLORS.fg,
-  border: `1px solid ${COLORS.border}`,
-  borderRadius: 10,
-  padding: "12px 18px",
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: "pointer",
-  fontFamily: "ui-monospace, monospace",
-};
-
-type ConnectorItem = {
-  Icon: React.ComponentType<{ size?: number }>;
-  title: string;
-  body: string;
-};
-
-function ConnectorGroup({
-  label,
-  items,
-  tint = false,
-}: {
-  label: string;
-  items: ConnectorItem[];
-  tint?: boolean;
-}) {
-  return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          marginBottom: 14,
-        }}
-      >
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: tint ? COLORS.primary : COLORS.muted,
-          }}
-        >
-          {label}
-        </span>
-        <span
-          style={{ flex: 1, height: 1, background: COLORS.border }}
-        />
-      </div>
-      <div
-        style={{
-          display: "grid",
-          gap: 12,
-          padding: tint ? 14 : 0,
-          background: tint ? `${COLORS.primary}0D` : "transparent",
-          border: tint ? `1px solid ${COLORS.primary}33` : "none",
-          borderRadius: tint ? 16 : 0,
-        }}
-      >
-        {items.map((f) => (
-          <div
-            key={f.title}
-            style={{
-              padding: 20,
-              border: `1px solid ${COLORS.border}`,
-              borderRadius: 14,
-              background: COLORS.panel,
-            }}
-          >
-            <div
-              style={{ marginBottom: 8, color: COLORS.primary }}
-              aria-hidden="true"
-            >
-              <f.Icon size={22} />
-            </div>
-            <div style={{ fontWeight: 600, fontSize: 15 }}>{f.title}</div>
-            <div style={{ color: COLORS.muted, fontSize: 14, marginTop: 6 }}>
-              {f.body}
-            </div>
-          </div>
-        ))}
-      </div>
+    <div style={{ ...row, background: "rgba(185,28,28,0.1)", color: "#b91c1c", fontWeight: 600 }}>
+      <XCircle size={14} aria-hidden /> {error ?? "Error"}
     </div>
   );
 }

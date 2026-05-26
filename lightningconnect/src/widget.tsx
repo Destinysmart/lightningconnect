@@ -18,12 +18,12 @@ interface LightningConnectProps {
 }
 
 const defaultTheme: Required<Theme> = {
-  primary: "#F7931A",
-  background: "#0A0A0A",
-  foreground: "#F5F5F5",
-  border: "#262626",
-  radius: "14px",
-  muted: "#A1A1AA",
+  primary: "#0d0d0d",
+  background: "#f5f3ee",
+  foreground: "#0d0d0d",
+  border: "#dcd9d1",
+  radius: "6px",
+  muted: "rgba(45,45,45,0.6)",
 };
 
 type View = "home" | "blink" | "ln-address" | "nwc" | "nwc-paste" | "blink-api";
@@ -215,7 +215,7 @@ export function LightningConnect({
   const primaryBtn: CSSProperties = {
     width: "100%",
     background: t.primary,
-    color: "#0A0A0A",
+    color: t.background,
     border: "none",
     borderRadius: t.radius,
     padding: "12px 16px",
