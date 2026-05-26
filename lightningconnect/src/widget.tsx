@@ -250,9 +250,66 @@ export function LightningConnect({
             <h2 style={title}>Connect Wallet</h2>
             <p style={subtitle}>Choose how to receive payments</p>
 
+            <SectionLabel theme={t}>Blink</SectionLabel>
+            <div
+              style={{
+                background: `${t.primary}0D`,
+                border: `1px solid ${t.primary}33`,
+                borderRadius: t.radius,
+                padding: 10,
+                marginBottom: 16,
+              }}
+            >
+              <button
+                style={{ ...optionBtn, marginBottom: 8 }}
+                onClick={() => setView("blink")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor = t.primary)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor = t.border)
+                }
+              >
+                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                  <Zap size={16} aria-hidden /> Blink Lightning Address
+                </div>
+                <div style={{ marginBottom: 6 }}>
+                  <span style={tag}>Recommended</span>
+                  <span style={tag}>Instant</span>
+                </div>
+                <div style={{ fontSize: 12, color: t.muted }}>
+                  Just your Blink username
+                </div>
+              </button>
+
+              <button
+                style={{ ...optionBtn, marginBottom: 0 }}
+                onClick={() => setView("blink-api")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor = t.primary)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor = t.border)
+                }
+              >
+                <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                  <KeyRound size={16} aria-hidden /> Blink API Key
+                </div>
+                <div style={{ marginBottom: 6 }}>
+                  <span style={tag}>Advanced</span>
+                  <span style={tag}>Full Control</span>
+                </div>
+                <div style={{ fontSize: 12, color: t.muted }}>
+                  Transaction history + balance access
+                </div>
+              </button>
+            </div>
+
+            <SectionLabel theme={t}>Other Wallets</SectionLabel>
+
             <button
               style={optionBtn}
-              onClick={() => setView("blink")}
+              onClick={() => setView("ln-address")}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.borderColor = t.primary)
               }
@@ -261,15 +318,13 @@ export function LightningConnect({
               }
             >
               <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
-                <Zap size={16} aria-hidden /> Blink Lightning Address
+                <Bitcoin size={16} aria-hidden /> Lightning Address
               </div>
               <div style={{ marginBottom: 6 }}>
-                <span style={tag}>Recommended</span>
-                <span style={tag}>No API Key</span>
-                <span style={tag}>Instant</span>
+                <span style={tag}>Universal</span>
               </div>
               <div style={{ fontSize: 12, color: t.muted }}>
-                Just your Blink username
+                Wallet of Satoshi, Alby, Coinos, Strike and more
               </div>
             </button>
 
@@ -287,34 +342,11 @@ export function LightningConnect({
                 <Link2 size={16} aria-hidden /> Nostr Wallet Connect
               </div>
               <div style={{ marginBottom: 6 }}>
-                <span style={tag}>Any Wallet</span>
-                <span style={tag}>Flexible</span>
-                <span style={tag}>Decentralized</span>
+                <span style={tag}>Beta</span>
+                <span style={tag}>Any NWC Wallet</span>
               </div>
               <div style={{ fontSize: 12, color: t.muted }}>
-                Blink, Alby, Zeus, Coinos
-              </div>
-            </button>
-
-            <button
-              style={optionBtn}
-              onClick={() => setView("blink-api")}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.borderColor = t.primary)
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.borderColor = t.border)
-              }
-            >
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
-                <KeyRound size={16} aria-hidden /> Blink API Key
-              </div>
-              <div style={{ marginBottom: 6 }}>
-                <span style={tag}>Advanced</span>
-                <span style={tag}>Full Control</span>
-              </div>
-              <div style={{ fontSize: 12, color: t.muted }}>
-                For power users
+                Alby Hub, Zeus, Phoenix and any NWC compatible wallet
               </div>
             </button>
 
@@ -330,6 +362,7 @@ export function LightningConnect({
             </button>
           </>
         )}
+
 
         {view === "blink" && (
           <>
