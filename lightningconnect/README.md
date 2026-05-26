@@ -12,13 +12,12 @@ npm install lightningconnect
 
 ## Why
 
-Most Bitcoin payment libraries leave the hard parts to you: polling for payment, cleaning up intervals, handling expiry. LightningConnect ships three browser-side connectors AND built-in payment detection so every user — from casual to power — can pay without you writing a single `setInterval`.
+Most Bitcoin payment libraries leave the hard parts to you: polling for payment, cleaning up intervals, handling expiry. LightningConnect ships four browser-side connectors AND built-in payment detection so every user — from casual to power — can pay without you writing a single `setInterval`.
 
-- ⚡ **Instant onboarding** — a Blink username is enough
+- ⚡ **Blink-native** — two dedicated Blink connectors (Address + API Key)
+- 🌐 **Universally compatible** — generic Lightning Address + NWC for every other wallet
 - 🔁 **Auto payment detection** — `onPayment` callback fires once, automatically
 - 🧹 **Auto cleanup** — watchers stop on PAID/EXPIRED and on unmount
-- 🔗 **Any NWC wallet** — Alby, Zeus, Coinos, Mutiny, and more
-- 🔑 **Power-user mode** — Blink API Key unlocks full account access
 - 🔒 **Encrypted local storage** — device-bound via Web Crypto
 - 📦 **<30kb gzipped** — only React as a peer dep
 
