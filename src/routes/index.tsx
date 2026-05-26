@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Zap, Link2, KeyRound } from "lucide-react";
+import { useRef, useState } from "react";
+import { Zap, Link2, KeyRound, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import {
   LightningConnect,
   useWalletConnect,
 } from "../../lightningconnect/src";
+import type { Invoice } from "../../lightningconnect/src/types";
 
 export const Route = createFileRoute("/")({
   component: Demo,
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Drop-in React widget and hook for Bitcoin wallet connection. Supports Blink Lightning Address, NWC, and Blink API Key. One component, every user covered.",
+          "Drop-in React widget and hook for Bitcoin wallet connection. Auto payment detection, three connectors, one component.",
       },
     ],
   }),
@@ -29,7 +30,28 @@ const COLORS = {
   primary: "#F7931A",
 };
 
+type WatchStatus = "idle" | "watching" | "paid" | "expired" | "error";
+
 function Demo() {
+  const [pollCount, setPollCount] = useState(0);
+  const [watchStatus, setWatchStatus] = useState<WatchStatus>("idle");
+  const [watchError, setWatchError] = useState<string | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startTicker = () => {
+    setPollCount(0);
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    pollIntervalRef.current = setInterval(() => {
+      setPollCount((n) => n + 1);
+    }, 5000);
+  };
+  const stopTicker = () => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+  };
+
   const {
     connect,
     disconnect,
@@ -37,28 +59,41 @@ function Demo() {
     connectionType,
     walletInfo,
     makeInvoice,
-    lookupInvoice,
-  } = useWalletConnect();
+    cancelWatch,
+  } = useWalletConnect({
+    pollInterval: 5000,
+    onPayment: () => {
+      stopTicker();
+      setWatchStatus("paid");
+    },
+    onExpiry: () => {
+      stopTicker();
+      setWatchStatus("expired");
+    },
+    onError: (e) => {
+      setWatchError(e.message);
+      setWatchStatus("error");
+    },
+  });
 
   const [amount, setAmount] = useState("1000");
   const [memo, setMemo] = useState("Coffee");
   const [currency, setCurrency] = useState<"BTC" | "USD">("BTC");
-  const [invoice, setInvoice] = useState<
-    | (import("../../lightningconnect/src/types").Invoice & { verify?: string })
-    | null
-  >(null);
-  const [status, setStatus] = useState<string | null>(null);
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const handleMake = async () => {
     setErr(null);
-    setStatus(null);
+    setWatchError(null);
     setInvoice(null);
+    setWatchStatus("idle");
     setBusy(true);
     try {
       const inv = await makeInvoice(Number(amount), currency, memo);
       setInvoice(inv);
+      setWatchStatus("watching");
+      startTicker();
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -66,21 +101,11 @@ function Demo() {
     }
   };
 
-
-  const handleLookup = async () => {
-    if (!invoice) return;
-    setErr(null);
-    setBusy(true);
-    try {
-      const s = await lookupInvoice(invoice.paymentHash, invoice);
-      setStatus(s);
-    } catch (e) {
-      setErr((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+  const handleCancel = () => {
+    if (invoice) cancelWatch(invoice);
+    stopTicker();
+    setWatchStatus("idle");
   };
-
 
   return (
     <div
@@ -123,7 +148,7 @@ function Demo() {
             marginBottom: 28,
           }}
         >
-          <Zap size={12} aria-hidden style={{ color: COLORS.primary }} /> v0.1.0 — npm
+          <Zap size={12} aria-hidden style={{ color: COLORS.primary }} /> v1.0.0 — npm
           install lightningconnect
         </div>
 
@@ -148,9 +173,9 @@ function Demo() {
             maxWidth: 620,
           }}
         >
-          A drop-in React widget + hook for any Bitcoin web app. Connect via
-          Blink Lightning Address, Nostr Wallet Connect, or Blink API Key. One
-          component, every user covered.
+          Drop-in React widget + hook. Connect via Blink Lightning Address,
+          NWC, or Blink API Key. Built-in payment detection — no polling code
+          to write. One component, every user covered.
         </p>
 
         <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
@@ -285,14 +310,14 @@ function Demo() {
               makeInvoice()
             </button>
             <button
-              onClick={handleLookup}
-              disabled={!invoice || busy}
+              onClick={handleCancel}
+              disabled={watchStatus !== "watching"}
               style={{
                 ...secondaryBtnStyle,
-                opacity: !invoice || busy ? 0.5 : 1,
+                opacity: watchStatus !== "watching" ? 0.5 : 1,
               }}
             >
-              lookupInvoice()
+              cancelWatch()
             </button>
           </div>
 
@@ -328,22 +353,21 @@ function Demo() {
               </div>
               {invoice.bolt11}
               <div
-                style={{ marginTop: 10, color: COLORS.primary, marginBottom: 4 }}
+                style={{
+                  marginTop: 10,
+                  color: COLORS.primary,
+                  marginBottom: 4,
+                }}
               >
                 payment_hash
               </div>
               {invoice.paymentHash}
 
-              {status && (
-                <div
-                  style={{
-                    marginTop: 12,
-                    color: status === "PAID" ? "#22c55e" : COLORS.fg,
-                  }}
-                >
-                  status: {status}
-                </div>
-              )}
+              <WatchIndicator
+                status={watchStatus}
+                pollCount={pollCount}
+                error={watchError}
+              />
             </div>
           )}
         </section>
@@ -402,10 +426,93 @@ function Demo() {
             justifyContent: "space-between",
           }}
         >
-          <span>lightningconnect · MIT</span>
+          <span>lightningconnect · v1.0.0 · MIT</span>
           <span>&lt;30kb gzipped · React 18+</span>
         </footer>
       </main>
+    </div>
+  );
+}
+
+function WatchIndicator({
+  status,
+  pollCount,
+  error,
+}: {
+  status: WatchStatus;
+  pollCount: number;
+  error: string | null;
+}) {
+  if (status === "idle") return null;
+  const row: React.CSSProperties = {
+    marginTop: 14,
+    padding: "10px 12px",
+    borderRadius: 8,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    fontSize: 12,
+  };
+
+  if (status === "watching") {
+    return (
+      <div
+        style={{
+          ...row,
+          background: "rgba(161,161,170,0.12)",
+          color: COLORS.fg,
+        }}
+      >
+        <Loader2
+          size={14}
+          aria-hidden
+          style={{ animation: "spin 1s linear infinite" }}
+        />
+        <span style={{ color: COLORS.muted }}>
+          Watching for payment — checked {pollCount} time
+          {pollCount === 1 ? "" : "s"}…
+        </span>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
+  if (status === "paid") {
+    return (
+      <div
+        style={{
+          ...row,
+          background: "rgba(34,197,94,0.15)",
+          color: "#22c55e",
+          fontWeight: 600,
+        }}
+      >
+        <CheckCircle2 size={14} aria-hidden /> Payment received!
+      </div>
+    );
+  }
+  if (status === "expired") {
+    return (
+      <div
+        style={{
+          ...row,
+          background: "rgba(239,68,68,0.15)",
+          color: "#ef4444",
+          fontWeight: 600,
+        }}
+      >
+        <XCircle size={14} aria-hidden /> Invoice expired
+      </div>
+    );
+  }
+  return (
+    <div
+      style={{
+        ...row,
+        background: "rgba(239,68,68,0.15)",
+        color: "#ef4444",
+      }}
+    >
+      <XCircle size={14} aria-hidden /> {error ?? "Watcher error"}
     </div>
   );
 }
