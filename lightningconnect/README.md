@@ -113,19 +113,21 @@ const {
 | Connector | Polling primitive | PAID signal | EXPIRED signal |
 | --- | --- | --- | --- |
 | Blink Lightning Address | LNURL `verify` URL | `settled: true` | `expiresAt` past |
+| Lightning Address (any) | LNURL `verify` URL | `settled: true` | `expiresAt` past |
 | NWC | `lookup_invoice` request | `settled_at`, `preimage`, `state === paid` | `state === expired` |
 | Blink API Key | `lnInvoicePaymentStatus` query | `status === PAID` | `status === EXPIRED` |
 
-## The three connectors
+## The four connectors
 
-### ⚡ Blink Lightning Address
-The user types `satoshi` (or `satoshi@blink.sv`). The widget validates the address via `https://blink.sv/.well-known/lnurlp/{username}`, then calls the LNURL-pay callback to mint invoices. No API key, no dashboard.
+LightningConnect groups its connectors into two categories — **Blink** (native, premium) and **Other Wallets** (universal compatibility).
 
-### 🔗 Nostr Wallet Connect
-Pair by pasting an `nostr+walletconnect://...` string. The widget talks to the wallet over a Nostr relay using NIP-47: `make_invoice` to mint, `lookup_invoice` for status. Works with **Blink, Alby, Zeus, Coinos, Mutiny** and any NWC wallet.
+### Blink
 
-### 🔑 Blink API Key (advanced)
-Full control for power users. Paste a Blink API key and LightningConnect talks directly to `https://api.blink.sv/graphql`, unlocking BTC + USD invoice creation, real-time payment status, and the full account surface.
+#### ⚡ Blink Lightning Address
+The user types `satoshi` (or `satoshi@blink.sv`). The widget validates the address via `https://blink.sv/.well-known/lnurlp/{username}`, then calls the LNURL-pay callback to mint invoices. No API key, no dashboard. **Recommended for most users.**
+
+#### 🔑 Blink API Key (advanced)
+Full control for power users. Paste a Blink API key and LightningConnect talks directly to `https://api.blink.sv/graphql`, unlocking BTC + USD invoice creation, real-time payment status, transaction history, balance, and the full account surface.
 
 **Setup:**
 1. Open [dashboard.blink.sv](https://dashboard.blink.sv)
@@ -134,6 +136,14 @@ Full control for power users. Paste a Blink API key and LightningConnect talks d
 4. Paste it into the widget
 
 Your API key is encrypted with AES-GCM and stored on-device — it never leaves the browser.
+
+### Other Wallets
+
+#### ₿ Lightning Address
+Any standard Lightning Address (`you@walletofsatoshi.com`, `you@coinos.io`, `you@strike.me`, …). Resolved via standard LNURL-pay (`/.well-known/lnurlp/{user}`), so it works with **Wallet of Satoshi, Alby, Coinos, Strike** and every other Lightning Address provider.
+
+#### 🔗 Nostr Wallet Connect (Beta)
+Pair by pasting an `nostr+walletconnect://...` string. The widget talks to the wallet over a Nostr relay using NIP-47: `make_invoice` to mint, `lookup_invoice` for status. Works with **Alby Hub, Zeus, Phoenix, Mutiny** and any NIP-47 compatible wallet.
 
 ## Theming
 
