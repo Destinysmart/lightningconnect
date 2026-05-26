@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from "react";
+import { useState, useEffect, type CSSProperties, type ReactNode } from "react";
 import { Zap, Link2, ClipboardPaste, KeyRound, Lock, Bitcoin } from "lucide-react";
 
 import type { Connection, Theme } from "./types";
