@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Zap, Link2, KeyRound, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Zap, Link2, KeyRound, Bitcoin, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import {
   LightningConnect,
   useWalletConnect,
