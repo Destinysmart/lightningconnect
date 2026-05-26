@@ -79,6 +79,24 @@ export function LightningConnect({
     }
   };
 
+  const submitLnAddress = async () => {
+    setError(null);
+    const trimmed = lnAddressInput.trim();
+    if (!trimmed.includes("@")) {
+      setError("Enter a full Lightning Address like you@wallet.com");
+      return;
+    }
+    setBusy(true);
+    try {
+      const conn = await validateBlinkAddress(trimmed);
+      await handleConnect(conn);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const submitNwc = async () => {
     setError(null);
     setBusy(true);
