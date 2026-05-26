@@ -373,48 +373,41 @@ function Demo() {
           )}
         </section>
 
-        <section style={{ marginTop: 56, display: "grid", gap: 16 }}>
-          {[
-            {
-              Icon: Zap,
-              title: "Blink Lightning Address",
-              body: "Just your Blink username. No API key, no dashboard, no setup. Instant.",
-            },
-            {
-              Icon: Link2,
-              title: "Nostr Wallet Connect",
-              body: "Paste a connection string from Alby, Zeus, Coinos, or any NWC wallet. Decentralized and flexible.",
-            },
-            {
-              Icon: KeyRound,
-              title: "Blink API Key",
-              body: "Full control for power users. Unlocks transaction history, balance, and advanced features.",
-            },
-          ].map((f) => (
-            <div
-              key={f.title}
-              style={{
-                padding: 20,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 14,
-                background: COLORS.panel,
-              }}
-            >
-              <div
-                style={{ marginBottom: 8, color: COLORS.primary }}
-                aria-hidden="true"
-              >
-                <f.Icon size={22} />
-              </div>
-              <div style={{ fontWeight: 600, fontSize: 15 }}>{f.title}</div>
-              <div
-                style={{ color: COLORS.muted, fontSize: 14, marginTop: 6 }}
-              >
-                {f.body}
-              </div>
-            </div>
-          ))}
+        <section style={{ marginTop: 56 }}>
+          <ConnectorGroup
+            label="Blink"
+            tint
+            items={[
+              {
+                Icon: Zap,
+                title: "Blink Lightning Address",
+                body: "Just your Blink username. No API key, no dashboard, no setup. Instant.",
+              },
+              {
+                Icon: KeyRound,
+                title: "Blink API Key",
+                body: "Full control for power users. Transaction history, balance, and advanced features.",
+              },
+            ]}
+          />
+          <div style={{ height: 20 }} />
+          <ConnectorGroup
+            label="Other Wallets"
+            items={[
+              {
+                Icon: Bitcoin,
+                title: "Lightning Address",
+                body: "Any user@domain.tld — Wallet of Satoshi, Alby, Coinos, Strike and more. Universal LNURL-pay.",
+              },
+              {
+                Icon: Link2,
+                title: "Nostr Wallet Connect",
+                body: "Beta — pair Alby Hub, Zeus, Phoenix or any NIP-47 wallet by pasting a connection string.",
+              },
+            ]}
+          />
         </section>
+
 
         <footer
           style={{
