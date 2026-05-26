@@ -393,6 +393,38 @@ export function LightningConnect({
           </>
         )}
 
+        {view === "ln-address" && (
+          <>
+            <h2 style={title}>Lightning Address</h2>
+            <p style={subtitle}>
+              Any Lightning Address — Wallet of Satoshi, Alby, Coinos, Strike
+            </p>
+            <input
+              style={input}
+              placeholder="you@walletofsatoshi.com"
+              value={lnAddressInput}
+              onChange={(e) => setLnAddressInput(e.target.value)}
+              autoFocus
+            />
+            {error && (
+              <div
+                style={{ color: "#ef4444", fontSize: 12, marginBottom: 10 }}
+              >
+                {error}
+              </div>
+            )}
+            <button
+              style={primaryBtn}
+              disabled={busy || !lnAddressInput}
+              onClick={submitLnAddress}
+            >
+              {busy ? "Validating…" : "Connect"}
+            </button>
+            {back}
+          </>
+        )}
+
+
         {view === "nwc" && (
           <>
             <h2 style={title}>Nostr Wallet Connect</h2>
