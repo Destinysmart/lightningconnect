@@ -50,6 +50,7 @@ export function LightningConnect({
       setView("home");
       setError(null);
       setBlinkInput("");
+      setLnAddressInput("");
       setNwcInput("");
       setApiKeyInput("");
       setWalletNameInput("");
