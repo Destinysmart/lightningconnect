@@ -545,3 +545,80 @@ const secondaryBtnStyle: React.CSSProperties = {
   cursor: "pointer",
   fontFamily: "ui-monospace, monospace",
 };
+
+type ConnectorItem = {
+  Icon: React.ComponentType<{ size?: number }>;
+  title: string;
+  body: string;
+};
+
+function ConnectorGroup({
+  label,
+  items,
+  tint = false,
+}: {
+  label: string;
+  items: ConnectorItem[];
+  tint?: boolean;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 14,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: tint ? COLORS.primary : COLORS.muted,
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{ flex: 1, height: 1, background: COLORS.border }}
+        />
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gap: 12,
+          padding: tint ? 14 : 0,
+          background: tint ? `${COLORS.primary}0D` : "transparent",
+          border: tint ? `1px solid ${COLORS.primary}33` : "none",
+          borderRadius: tint ? 16 : 0,
+        }}
+      >
+        {items.map((f) => (
+          <div
+            key={f.title}
+            style={{
+              padding: 20,
+              border: `1px solid ${COLORS.border}`,
+              borderRadius: 14,
+              background: COLORS.panel,
+            }}
+          >
+            <div
+              style={{ marginBottom: 8, color: COLORS.primary }}
+              aria-hidden="true"
+            >
+              <f.Icon size={22} />
+            </div>
+            <div style={{ fontWeight: 600, fontSize: 15 }}>{f.title}</div>
+            <div style={{ color: COLORS.muted, fontSize: 14, marginTop: 6 }}>
+              {f.body}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
