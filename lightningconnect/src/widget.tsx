@@ -579,4 +579,42 @@ export function LightningConnect({
   );
 }
 
+function SectionLabel({
+  theme,
+  children,
+}: {
+  theme: Required<Theme>;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        margin: "4px 2px 10px",
+      }}
+    >
+      <span
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: theme.muted,
+        }}
+      >
+        {children}
+      </span>
+      <span
+        style={{
+          flex: 1,
+          height: 1,
+          background: theme.border,
+        }}
+      />
+    </div>
+  );
+}
+
 export { useWalletConnect };
