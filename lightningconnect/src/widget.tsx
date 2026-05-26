@@ -584,7 +584,7 @@ function SectionLabel({
   children,
 }: {
   theme: Required<Theme>;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div
