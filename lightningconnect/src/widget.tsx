@@ -39,6 +39,7 @@ export function LightningConnect({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [blinkInput, setBlinkInput] = useState("");
+  const [lnAddressInput, setLnAddressInput] = useState("");
   const [nwcInput, setNwcInput] = useState("");
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [walletNameInput, setWalletNameInput] = useState("");
