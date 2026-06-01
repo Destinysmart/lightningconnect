@@ -38,7 +38,8 @@ describe("watchPayment", () => {
     });
     await flush();
     // Advance plenty of poll cycles.
-    await vi.advanceTimersByTimeAsync(5000);
+    vi.advanceTimersByTime(5000);
+    await flush();
     expect(onPayment).toHaveBeenCalledTimes(1);
   });
 
