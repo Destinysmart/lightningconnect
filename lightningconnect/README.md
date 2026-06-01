@@ -18,6 +18,7 @@ Most Bitcoin payment libraries leave the hard parts to you: polling for payment,
 - 🌐 **Universally compatible** — generic Lightning Address + NWC for every other wallet
 - 🔁 **Auto payment detection** — `onPayment` callback fires once, automatically
 - 🧹 **Auto cleanup** — watchers stop on PAID/EXPIRED and on unmount
+- 🌗 **Light & dark mode** — automatic theme switching with persisted preference
 - 🔒 **Encrypted local storage** — device-bound via Web Crypto
 - 📦 **<30kb gzipped** — only React as a peer dep
 
@@ -167,6 +168,8 @@ cancel();
 
 ## Theming
 
+### Dark mode (default)
+
 ```tsx
 <LightningConnect
   theme={{
@@ -180,7 +183,21 @@ cancel();
 />
 ```
 
-All theme keys are optional.
+### Light mode
+
+Pass `lightTheme` to define the light appearance, and `defaultMode` to set the starting mode:
+
+```tsx
+<LightningConnect
+  theme={{ primary: "#F7931A" }}            // dark mode overrides
+  lightTheme={{ primary: "#F7931A" }}       // light mode overrides
+  defaultMode="light"                       // "light" | "dark"
+/>
+```
+
+The widget renders a sun/moon toggle in the modal header. The user's choice is persisted to `localStorage` under the key `lightningconnect:mode`. If no `lightTheme` is provided, sensible light defaults are used automatically.
+
+All theme keys are optional in both `theme` and `lightTheme`.
 
 ## Storage & portability
 
