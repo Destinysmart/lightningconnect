@@ -4,7 +4,7 @@
 
 LightningConnect is a drop-in React widget + hook that solves the wallet connection AND payment detection problem for Bitcoin web apps. It is Blink-native — with two dedicated Blink connectors no other library ships — and universally compatible with every other wallet via generic Lightning Address and Nostr Wallet Connect. Your app makes invoices and gets a callback when they're paid. No polling code to write.
 
-> **One component. Every user covered.**
+> **v1.0.0 is here.** Payment detection is now built in. Connect, invoice, and get paid — zero polling code required.
 
 ```
 npm install lightningconnect
@@ -144,6 +144,26 @@ Any standard Lightning Address (`you@walletofsatoshi.com`, `you@coinos.io`, `you
 
 #### 🔗 Nostr Wallet Connect (Beta)
 Pair by pasting an `nostr+walletconnect://...` string. The widget talks to the wallet over a Nostr relay using NIP-47: `make_invoice` to mint, `lookup_invoice` for status. Works with **Alby Hub, Zeus, Phoenix, Mutiny** and any NIP-47 compatible wallet.
+
+## Standalone payment watcher
+
+If you need payment detection outside the hook, use `watchPayment` directly:
+
+```ts
+import { watchPayment } from "lightningconnect";
+
+const cancel = watchPayment({
+  invoice,
+  lookup: () => lookupInvoice(paymentHash),
+  pollInterval: 5000,
+  onPayment: (inv) => console.log("Paid!", inv),
+  onExpiry: (inv) => console.log("Expired", inv),
+  onError: (err) => console.error(err),
+});
+
+// Stop manually
+cancel();
+```
 
 ## Theming
 
