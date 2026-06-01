@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties, type ReactNode } from "react";
-import { Zap, Link2, ClipboardPaste, KeyRound, Lock, Bitcoin } from "lucide-react";
+import { Zap, Link2, ClipboardPaste, KeyRound, Lock, Bitcoin, Sun, Moon } from "lucide-react";
 
 import type { Connection, Theme } from "./types";
 import { validateBlinkAddress } from "./connectors/blink-address";
@@ -11,13 +11,17 @@ import {
   useWalletConnect,
 } from "./hooks/useWalletConnect";
 
+type Mode = "light" | "dark";
+
 interface LightningConnectProps {
   theme?: Theme;
+  lightTheme?: Theme;
+  defaultMode?: Mode;
   onConnect?: (wallet: Connection) => void;
   onSkip?: () => void;
 }
 
-const defaultTheme: Required<Theme> = {
+const darkDefaults: Required<Theme> = {
   primary: "#F7931A",
   background: "#0A0A0A",
   foreground: "#F5F5F5",
@@ -26,14 +30,42 @@ const defaultTheme: Required<Theme> = {
   muted: "#A1A1AA",
 };
 
+const lightDefaults: Required<Theme> = {
+  primary: "#F7931A",
+  background: "#FFFFFF",
+  foreground: "#0A0A0A",
+  border: "#E5E5E5",
+  radius: "14px",
+  muted: "#6B7280",
+};
+
+const MODE_STORAGE_KEY = "lightningconnect:mode";
+
 type View = "home" | "blink" | "ln-address" | "nwc" | "nwc-paste" | "blink-api";
 
 export function LightningConnect({
   theme,
+  lightTheme,
+  defaultMode = "dark",
   onConnect,
   onSkip,
 }: LightningConnectProps) {
-  const t = { ...defaultTheme, ...theme };
+  const [mode, setMode] = useState<Mode>(() => {
+    if (typeof window === "undefined") return defaultMode;
+    const saved = window.localStorage.getItem(MODE_STORAGE_KEY);
+    return saved === "light" || saved === "dark" ? saved : defaultMode;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(MODE_STORAGE_KEY, mode);
+    }
+  }, [mode]);
+
+  const t =
+    mode === "light"
+      ? { ...lightDefaults, ...lightTheme }
+      : { ...darkDefaults, ...theme };
   const { modalOpen, setModalOpen } = useWidgetStore();
   const [view, setView] = useState<View>("home");
   const [busy, setBusy] = useState(false);
