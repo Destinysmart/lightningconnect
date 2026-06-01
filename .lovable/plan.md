@@ -1,79 +1,65 @@
-## Goal
+# Publish lightningconnect 1.0.0 to npm
 
-Reorganize the LightningConnect widget into two visually-grouped sections — **Blink** (native, premium) and **Other Wallets** (universal) — exposing four connector entry points instead of three. Update the landing page and README to match.
+## Diagnosis
 
-## UI changes — `lightningconnect/src/widget.tsx`
+The npm registry currently has only `lightningconnect@0.1.0` (published 2026-05-21). The local `lightningconnect/package.json` is `1.0.0` and contains all recent work:
 
-Home view replaces the flat 3-button list with two labeled groups:
+- Built-in payment watcher (`watchPayment`, `onPayment`/`onExpiry` callbacks)
+- Four connectors (Blink Address, Blink API Key, generic Lightning Address, NWC)
+- Light/dark mode with persisted toggle
+- Modal scroll/height fix
 
-```text
-Connect Wallet
-Choose how to receive payments
+When apps run `npm install lightningconnect`, npm serves 0.1.0 — none of the updates are present in their `node_modules`. This is why integrators report "updates not reflecting." It is a release/publish issue, not a code bug.
 
-── BLINK ──────────────────────────       (warm-tinted panel)
-  ⚡ Blink Lightning Address
-     [Recommended] [Instant]
-     Just your Blink username
+## Plan
 
-  🔑 Blink API Key
-     [Advanced] [Full Control]
-     Transaction history + balance access
+### 1. Pre-publish verification (I'll do this)
 
-── OTHER WALLETS ──────────────────
-  ₿  Lightning Address
-     [Universal]
-     Wallet of Satoshi, Alby, Coinos, Strike and more
+- Re-confirm the published version on npm vs local `package.json`.
+- Verify `lightningconnect/package.json` is `1.0.0`, has correct `main`/`module`/`types`/`exports`/`files` fields.
+- Run the library build (`cd lightningconnect && bun run build`) and confirm `dist/` contains `index.esm.js`, `index.cjs.js`, `index.d.ts`.
+- Run the test suite (45 tests) to confirm green.
+- Inspect what would be published with `npm pack --dry-run` (file list + tarball size).
 
-  🔗 Nostr Wallet Connect
-     [Beta] [Any NWC Wallet]
-     Alby Hub, Zeus, Phoenix and any NWC compatible wallet
+### 2. Small package.json polish (only if missing)
 
-  Skip for now
+- Confirm `repository`, `homepage`, and `bugs` fields exist (helps npm page + integrators trust the package). Add minimally if missing.
+- Make sure `prepublishOnly: "bun run build"` script exists so a fresh `dist/` is always shipped.
+
+### 3. Publish (you do this — needs your npm auth)
+
+I can't run `npm publish` because it requires your npm login token. Once step 1 is green, you run from the repo root:
+
+```bash
+cd lightningconnect
+npm login            # one-time, if not already logged in
+npm publish --access public
 ```
 
-Implementation notes:
-- Add a `SectionDivider` inline component rendering a small uppercase label with hairline rules on each side, using theme `muted` and `border` tokens.
-- Wrap the Blink group in a container with a subtle warm tint (e.g. `background: ${primary}0A`, 1px border, same radius) so it reads as one card. Other Wallets group stays unstyled (flush against the modal background).
-- Add a new `View` value: `"ln-address"` for the generic Lightning Address flow. Keep `"blink"`, `"nwc"`, `"nwc-paste"`, `"blink-api"` as-is.
-- Icons: keep `Zap` for Blink address, `KeyRound` for Blink API, `Link2` for NWC. Use the lucide `Bitcoin` icon for the generic Lightning Address option.
+Then verify:
 
-### New generic "Lightning Address" view
+```bash
+npm view lightningconnect version    # should print 1.0.0
+```
 
-Reuses `validateBlinkAddress` (it already parses `user@domain.tld` and fetches `https://{domain}/.well-known/lnurlp/{user}`) — only the UX differs:
-- Placeholder: `satoshi@walletofsatoshi.com`
-- Validation: require the input to contain `@` before calling `validateBlinkAddress`; show "Enter a full Lightning Address like `you@wallet.com`" otherwise. (The existing Blink view keeps its `username` shortcut.)
-- Submit path calls the same connector and stores the same `blink-address` connection shape — no type or storage changes.
+### 4. Tell integrators how to pick up the update
 
-### Wording tweaks
-- Blink view subtitle stays "Enter your username or full address".
-- NWC option subtext changes from "Blink, Alby, Zeus, Coinos" to "Alby Hub, Zeus, Phoenix and any NWC compatible wallet" (Blink is no longer name-dropped here since it has its own section).
+In their app:
 
-## Landing page — `src/routes/index.tsx`
+```bash
+npm install lightningconnect@latest
+# or pin: npm install lightningconnect@1.0.0
+```
 
-Update the connector showcase / feature list to mirror the two-category split: a "Blink-native" group highlighting Address + API Key, and an "Other Wallets" group highlighting generic Lightning Address + NWC. No business-logic changes; copy and section layout only.
+If they had `^0.1.0` in their `package.json`, npm will NOT auto-upgrade to 1.0.0 (major bump). They must explicitly install `@latest` or `@1.0.0` and update the range.
 
-## README — `lightningconnect/README.md`
+## Technical notes
 
-Replace "The three connectors" section with "The four connectors", organized as:
+- Version jump 0.1.0 → 1.0.0 is a major bump. That's intentional (new public APIs: `onPayment`, `watchPayment`, `lightTheme`, `defaultMode`, new connectors). No semver issue.
+- The package is unscoped and public — no `.npmrc` or registry config needed.
+- `files: ["dist", "README.md"]` already restricts the tarball correctly.
+- No build secrets required for publishing; npm publish is done from your local machine, not from Lovable.
 
-- **Blink**
-  - Blink Lightning Address (recommended, instant)
-  - Blink API Key (advanced, full account access)
-- **Other Wallets**
-  - Lightning Address (any `user@domain.tld`, LNURL-pay)
-  - Nostr Wallet Connect (Beta — Alby Hub, Zeus, Phoenix, any NIP-47 wallet)
+## Deliverable
 
-Update the tagline paragraph and the "Why" bullets to say "four connectors" and mention the Blink-native positioning. Per-connector behaviour table grows by one row for generic Lightning Address (same primitives as the Blink address row).
-
-## Out of scope
-
-- No changes to `types.ts`, storage, connectors, or the `useWalletConnect` hook.
-- No version bump.
-- No tab/multi-screen redesign — single scrollable modal as today.
-
-## Technical summary
-
-Files touched:
-- `lightningconnect/src/widget.tsx` — section grouping, warm-tinted Blink panel, new `ln-address` view, NWC subtext tweak.
-- `lightningconnect/README.md` — four-connector docs under two categories.
-- `src/routes/index.tsx` — landing page connector showcase reorganized into Blink / Other Wallets.
+After this plan runs you'll have: confirmed build artifacts, a green test run, a `npm pack --dry-run` report of exactly what will ship, and the two commands to publish + verify.
