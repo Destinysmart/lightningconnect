@@ -145,6 +145,26 @@ Any standard Lightning Address (`you@walletofsatoshi.com`, `you@coinos.io`, `you
 #### 🔗 Nostr Wallet Connect (Beta)
 Pair by pasting an `nostr+walletconnect://...` string. The widget talks to the wallet over a Nostr relay using NIP-47: `make_invoice` to mint, `lookup_invoice` for status. Works with **Alby Hub, Zeus, Phoenix, Mutiny** and any NIP-47 compatible wallet.
 
+## Standalone payment watcher
+
+If you need payment detection outside the hook, use `watchPayment` directly:
+
+```ts
+import { watchPayment } from "lightningconnect";
+
+const cancel = watchPayment({
+  invoice,
+  lookup: () => lookupInvoice(paymentHash),
+  pollInterval: 5000,
+  onPayment: (inv) => console.log("Paid!", inv),
+  onExpiry: (inv) => console.log("Expired", inv),
+  onError: (err) => console.error(err),
+});
+
+// Stop manually
+cancel();
+```
+
 ## Theming
 
 ```tsx
