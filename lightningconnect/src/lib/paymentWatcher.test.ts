@@ -91,7 +91,8 @@ describe("watchPayment", () => {
     await flush();
     cancel();
     resolved = "PAID";
-    await vi.advanceTimersByTimeAsync(5000);
+    vi.advanceTimersByTime(5000);
+    await flush();
     expect(onPayment).not.toHaveBeenCalled();
   });
 
@@ -107,7 +108,8 @@ describe("watchPayment", () => {
     });
     await flush();
     // 1 immediate + ticks at 250, 500, 750
-    await vi.advanceTimersByTimeAsync(800);
+    vi.advanceTimersByTime(800);
+    await flush();
     expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(4);
   });
 
@@ -128,7 +130,8 @@ describe("watchPayment", () => {
       pollInterval: 100,
     });
     await flush();
-    await vi.advanceTimersByTimeAsync(500);
+    vi.advanceTimersByTime(500);
+    await flush();
     expect(onError).toHaveBeenCalledTimes(1);
     expect(onPayment).toHaveBeenCalledTimes(1);
   });
@@ -144,7 +147,8 @@ describe("watchPayment", () => {
       pollInterval: 1000,
     });
     await flush();
-    await vi.advanceTimersByTimeAsync(3000);
+    vi.advanceTimersByTime(3000);
+    await flush();
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 });
