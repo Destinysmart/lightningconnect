@@ -311,6 +311,7 @@ export function LightningConnect({
             {mode === "dark" ? <Sun size={14} /> : <Moon size={14} />}
           </button>
         </div>
+        {view === "home" && (
           <>
             <h2 style={title}>Connect Wallet</h2>
             <p style={subtitle}>Choose how to receive payments</p>
