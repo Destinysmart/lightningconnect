@@ -4,7 +4,7 @@
 
 LightningConnect is a drop-in React widget + hook that solves the wallet connection AND payment detection problem for Bitcoin web apps. It is Blink-native — with two dedicated Blink connectors no other library ships — and universally compatible with every other wallet via generic Lightning Address and Nostr Wallet Connect. Your app makes invoices and gets a callback when they're paid. No polling code to write.
 
-> **One component. Every user covered.**
+> **v1.0.0 is here.** Payment detection is now built in. Connect, invoice, and get paid — zero polling code required.
 
 ```
 npm install lightningconnect
