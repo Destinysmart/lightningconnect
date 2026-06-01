@@ -19,15 +19,7 @@
     "dev": "vite build --config vite.lib.config.ts --watch",
     "prepublishOnly": "vite build --config vite.lib.config.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/lightningconnect/lightningconnect.git",
-    "directory": "lightningconnect"
-  },
   "homepage": "https://lightningconnect.lovable.app",
-  "bugs": {
-    "url": "https://github.com/lightningconnect/lightningconnect/issues"
-  },
   "keywords": [
     "bitcoin",
     "lightning",
