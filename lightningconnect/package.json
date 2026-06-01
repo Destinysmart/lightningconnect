@@ -1,7 +1,7 @@
 {
   "name": "lightningconnect",
   "version": "1.0.0",
-  "description": "Drop-in React widget and hook for Bitcoin wallet connection. Supports Blink Lightning Address, NWC, and Blink API Key.",
+  "description": "Zero-friction Bitcoin wallet connection for React. Four connectors, automatic payment detection, one drop-in component.",
   "type": "module",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
