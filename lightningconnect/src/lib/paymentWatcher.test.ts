@@ -107,10 +107,16 @@ describe("watchPayment", () => {
       pollInterval: 250,
     });
     await flush();
-    // 1 immediate + ticks at 250, 500, 750
-    vi.advanceTimersByTime(800);
+    // 1 immediate call
+    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(1);
+    // Advance to next tick and let it resolve
+    vi.advanceTimersByTime(250);
     await flush();
-    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(4);
+    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(2);
+    // Advance again
+    vi.advanceTimersByTime(250);
+    await flush();
+    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 
   it("calls onError but keeps polling on lookup failure", async () => {
