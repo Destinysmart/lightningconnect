@@ -279,7 +279,38 @@ export function LightningConnect({
   return (
     <div style={overlay} onClick={() => setModalOpen(false)}>
       <div style={card} onClick={(e) => e.stopPropagation()}>
-        {view === "home" && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: 4,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setMode(mode === "dark" ? "light" : "dark")}
+            aria-label={
+              mode === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            title={
+              mode === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            style={{
+              background: "transparent",
+              color: t.muted,
+              border: `1px solid ${t.border}`,
+              borderRadius: 999,
+              width: 32,
+              height: 32,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+            }}
+          >
+            {mode === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+        </div>
           <>
             <h2 style={title}>Connect Wallet</h2>
             <p style={subtitle}>Choose how to receive payments</p>
