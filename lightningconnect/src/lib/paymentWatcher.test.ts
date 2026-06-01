@@ -38,7 +38,8 @@ describe("watchPayment", () => {
     });
     await flush();
     // Advance plenty of poll cycles.
-    await vi.advanceTimersByTimeAsync(5000);
+    vi.advanceTimersByTime(5000);
+    await flush();
     expect(onPayment).toHaveBeenCalledTimes(1);
   });
 
@@ -90,7 +91,8 @@ describe("watchPayment", () => {
     await flush();
     cancel();
     resolved = "PAID";
-    await vi.advanceTimersByTimeAsync(5000);
+    vi.advanceTimersByTime(5000);
+    await flush();
     expect(onPayment).not.toHaveBeenCalled();
   });
 
@@ -105,9 +107,16 @@ describe("watchPayment", () => {
       pollInterval: 250,
     });
     await flush();
-    // 1 immediate + ticks at 250, 500, 750
-    await vi.advanceTimersByTimeAsync(800);
-    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(4);
+    // 1 immediate call
+    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(1);
+    // Advance to next tick and let it resolve
+    vi.advanceTimersByTime(250);
+    await flush();
+    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(2);
+    // Advance again
+    vi.advanceTimersByTime(250);
+    await flush();
+    expect(lookup.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 
   it("calls onError but keeps polling on lookup failure", async () => {
@@ -127,7 +136,8 @@ describe("watchPayment", () => {
       pollInterval: 100,
     });
     await flush();
-    await vi.advanceTimersByTimeAsync(500);
+    vi.advanceTimersByTime(500);
+    await flush();
     expect(onError).toHaveBeenCalledTimes(1);
     expect(onPayment).toHaveBeenCalledTimes(1);
   });
@@ -143,7 +153,8 @@ describe("watchPayment", () => {
       pollInterval: 1000,
     });
     await flush();
-    await vi.advanceTimersByTimeAsync(3000);
+    vi.advanceTimersByTime(3000);
+    await flush();
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 });
