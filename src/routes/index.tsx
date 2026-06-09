@@ -4,8 +4,8 @@ import { Zap, Link2, KeyRound, Bitcoin, Loader2, CheckCircle2, XCircle } from "l
 import {
   LightningConnect,
   useWalletConnect,
-} from "../../lightningconnect/src";
-import type { Invoice } from "../../lightningconnect/src/types";
+  type Invoice,
+} from "lightningconnect";
 
 export const Route = createFileRoute("/")({
   component: Demo,
